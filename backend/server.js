@@ -5,15 +5,13 @@ if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
   console.error('FATAL: JWT_SECRET is missing or too short (min 32 chars). Set it in .env');
   process.exit(1);
 }
-if (!process.env.MONGO_URI && !process.env.MONGO_URI) {
-  console.warn('WARN: MONGO_URI not set, falling back to localhost');
-}
 
+const logger = require('./utils/logger');
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
-const morgan = require('morgan');
+const pinoHttp = require('pino-http');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
 
@@ -41,16 +39,28 @@ app.use('/api/auth/', authLimiter);
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(morgan('dev'));
+
+// Structured HTTP request logging (replaces morgan)
+app.use(pinoHttp({
+  logger,
+  // Don't log health-check or static asset requests at info level
+  customLogLevel: (req, res, err) => {
+    if (res.statusCode >= 500 || err) return 'error';
+    if (res.statusCode >= 400) return 'warn';
+    return 'info';
+  },
+  // Skip logging for static files to reduce noise
+  autoLogging: { ignore: (req) => !req.url.startsWith('/api') }
+}));
 
 const frontendPath = path.join(__dirname, '../frontend');
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.static(frontendPath));
 
 mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/zipp')
-  .then(() => console.log('✅  MongoDB connected → zipp'))
+  .then(() => logger.info('MongoDB connected → zipp'))
   .catch(err => {
-    console.error('❌  MongoDB connection failed:', err.message);
+    logger.error({ err }, 'MongoDB connection failed');
     process.exit(1);
   });
 
@@ -74,7 +84,7 @@ app.get('*', (req, res) => {
 });
 
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  logger.error({ err, url: req.url, method: req.method }, 'Unhandled error');
   const status = err.status || 500;
   const message = process.env.NODE_ENV === 'production' && status === 500
     ? 'Internal Server Error'
@@ -84,17 +94,14 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 const server = app.listen(PORT, () => {
-  console.log('\n🚀 ═══════════════════════════════════════════');
-  console.log(`🛍️  Store  → http://localhost:${PORT}`);
-  console.log(`⚡  Admin  → http://localhost:${PORT}/admin.html`);
-  console.log(`🔑  Login  → http://localhost:${PORT}/pages/login.html`);
-  console.log('📦  Seed   → npm run seed');
-  console.log('🚀 ═══════════════════════════════════════════\n');
+  logger.info(`Server running on port ${PORT} [${process.env.NODE_ENV || 'development'}]`);
+  logger.info(`Store  → http://localhost:${PORT}`);
+  logger.info(`Admin  → http://localhost:${PORT}/admin.html`);
 });
 
 // Graceful shutdown
 function shutdown(signal) {
-  console.log(`\n${signal} received — shutting down gracefully`);
+  logger.info(`${signal} received — shutting down gracefully`);
   server.close(() => {
     mongoose.disconnect().then(() => process.exit(0));
   });

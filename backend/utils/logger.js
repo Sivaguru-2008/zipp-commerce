@@ -1,0 +1,11 @@
+const pino = require('pino');
+
+const logger = pino({
+  level: process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'info' : 'debug'),
+  // Pretty-print in development, JSON in production (for log aggregators)
+  transport: process.env.NODE_ENV !== 'production'
+    ? { target: 'pino-pretty', options: { colorize: true, translateTime: 'SYS:HH:MM:ss', ignore: 'pid,hostname' } }
+    : undefined
+});
+
+module.exports = logger;
