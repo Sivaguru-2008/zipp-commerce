@@ -1,3 +1,14 @@
+require('dotenv').config();
+
+// Fail fast on missing critical config
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+  console.error('FATAL: JWT_SECRET is missing or too short (min 32 chars). Set it in .env');
+  process.exit(1);
+}
+if (!process.env.MONGO_URI && !process.env.MONGO_URI) {
+  console.warn('WARN: MONGO_URI not set, falling back to localhost');
+}
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -5,17 +16,29 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
-require('dotenv').config();
 
 const app = express();
 
 app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
-app.use(cors({
-  origin: ['http://localhost:3000','http://127.0.0.1:3000','http://localhost:5000','http://127.0.0.1:5000','http://localhost:5500','http://127.0.0.1:5500'],
-  credentials: true
-}));
+
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+  : ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5000', 'http://127.0.0.1:5000', 'http://localhost:5500', 'http://127.0.0.1:5500'];
+
+app.use(cors({ origin: allowedOrigins, credentials: true }));
+
+// General API rate limit
 const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 1000 });
 app.use('/api/', limiter);
+
+// Stricter limit on auth endpoints to prevent brute force
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: { success: false, message: 'Too many auth attempts, please try again later' }
+});
+app.use('/api/auth/', authLimiter);
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(morgan('dev'));
@@ -26,7 +49,10 @@ app.use(express.static(frontendPath));
 
 mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/zipp')
   .then(() => console.log('✅  MongoDB connected → zipp'))
-  .catch(err => console.error('❌  MongoDB error:', err.message));
+  .catch(err => {
+    console.error('❌  MongoDB connection failed:', err.message);
+    process.exit(1);
+  });
 
 app.use('/api/auth',       require('./routes/auth'));
 app.use('/api/users',      require('./routes/users'));
@@ -49,11 +75,15 @@ app.get('*', (req, res) => {
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(err.status || 500).json({ success: false, message: err.message || 'Internal Server Error' });
+  const status = err.status || 500;
+  const message = process.env.NODE_ENV === 'production' && status === 500
+    ? 'Internal Server Error'
+    : err.message || 'Internal Server Error';
+  res.status(status).json({ success: false, message });
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log('\n🚀 ═══════════════════════════════════════════');
   console.log(`🛍️  Store  → http://localhost:${PORT}`);
   console.log(`⚡  Admin  → http://localhost:${PORT}/admin.html`);
@@ -61,5 +91,16 @@ app.listen(PORT, () => {
   console.log('📦  Seed   → npm run seed');
   console.log('🚀 ═══════════════════════════════════════════\n');
 });
+
+// Graceful shutdown
+function shutdown(signal) {
+  console.log(`\n${signal} received — shutting down gracefully`);
+  server.close(() => {
+    mongoose.disconnect().then(() => process.exit(0));
+  });
+  setTimeout(() => process.exit(1), 10000);
+}
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT',  () => shutdown('SIGINT'));
 
 module.exports = app;

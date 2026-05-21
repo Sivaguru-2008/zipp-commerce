@@ -76,10 +76,13 @@ router.delete('/addresses/:id', protect, async (req, res) => {
 router.get('/', protect, adminOnly, async (req, res) => {
   try {
     const { page = 1, limit = 20, search } = req.query;
-    const query = search ? { $or: [{ name: new RegExp(search, 'i') }, { email: new RegExp(search, 'i') }] } : {};
+    const escaped = search ? search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : null;
+    const query = escaped
+      ? { $or: [{ name: new RegExp(escaped, 'i') }, { email: new RegExp(escaped, 'i') }] }
+      : {};
     const total = await User.countDocuments(query);
-    const users = await User.find(query).select('-password').sort('-createdAt').limit(limit).skip((page - 1) * limit);
-    res.json({ success: true, users, total, page: +page, pages: Math.ceil(total / limit) });
+    const users = await User.find(query).select('-password').sort('-createdAt').limit(+limit).skip((+page - 1) * +limit);
+    res.json({ success: true, users, total, page: +page, pages: Math.ceil(total / +limit) });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

@@ -6,6 +6,10 @@ const User = require('../models/User');
 const Product = require('../models/Product');
 const Category = require('../models/Category');
 
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 // GET /api/admin/stats
 router.get('/stats', protect, adminOnly, async (req, res) => {
   try {
@@ -20,7 +24,7 @@ router.get('/stats', protect, adminOnly, async (req, res) => {
       Order.find().sort('-createdAt').limit(5).populate('user', 'name email')
     ]);
 
-    const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
     const todayOrders = await Order.countDocuments({ createdAt: { $gte: todayStart } });
     const todayRevenue = await Order.aggregate([
       { $match: { createdAt: { $gte: todayStart }, status: { $ne: 'cancelled' } } },
@@ -40,15 +44,11 @@ router.get('/stats', protect, adminOnly, async (req, res) => {
     res.json({
       success: true,
       stats: {
-        totalOrders,
-        totalUsers,
-        totalProducts,
+        totalOrders, totalUsers, totalProducts,
         totalRevenue: totalRevenue[0]?.total || 0,
         todayOrders,
         todayRevenue: todayRevenue[0]?.total || 0,
-        ordersByStatus,
-        last7Days,
-        recentOrders
+        ordersByStatus, last7Days, recentOrders
       }
     });
   } catch (error) {
@@ -60,9 +60,11 @@ router.get('/stats', protect, adminOnly, async (req, res) => {
 router.get('/users', protect, adminOnly, async (req, res) => {
   try {
     const { page = 1, limit = 20, search } = req.query;
-    const query = search ? { $or: [{ name: new RegExp(search, 'i') }, { email: new RegExp(search, 'i') }] } : {};
+    const query = search
+      ? { $or: [{ name: new RegExp(escapeRegex(search), 'i') }, { email: new RegExp(escapeRegex(search), 'i') }] }
+      : {};
     const total = await User.countDocuments(query);
-    const users = await User.find(query).select('-password').sort('-createdAt').limit(+limit).skip((+page-1)*+limit);
+    const users = await User.find(query).select('-password').sort('-createdAt').limit(+limit).skip((+page - 1) * +limit);
     res.json({ success: true, users, total });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -75,9 +77,9 @@ router.get('/orders', protect, adminOnly, async (req, res) => {
     const { page = 1, limit = 20, status, search } = req.query;
     const query = {};
     if (status) query.status = status;
-    if (search) query.orderNumber = new RegExp(search, 'i');
+    if (search) query.orderNumber = new RegExp(escapeRegex(search), 'i');
     const total = await Order.countDocuments(query);
-    const orders = await Order.find(query).sort('-createdAt').populate('user', 'name email phone').limit(+limit).skip((+page-1)*+limit);
+    const orders = await Order.find(query).sort('-createdAt').populate('user', 'name email phone').limit(+limit).skip((+page - 1) * +limit);
     res.json({ success: true, orders, total });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -104,9 +106,9 @@ router.put('/orders/:id/status', protect, adminOnly, async (req, res) => {
 router.get('/products', protect, adminOnly, async (req, res) => {
   try {
     const { page = 1, limit = 20, search } = req.query;
-    const query = search ? { name: new RegExp(search, 'i') } : {};
+    const query = search ? { name: new RegExp(escapeRegex(search), 'i') } : {};
     const total = await Product.countDocuments(query);
-    const products = await Product.find(query).sort('-createdAt').populate('category', 'name').limit(+limit).skip((+page-1)*+limit);
+    const products = await Product.find(query).sort('-createdAt').populate('category', 'name').limit(+limit).skip((+page - 1) * +limit);
     res.json({ success: true, products, total });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -134,7 +136,7 @@ router.put('/inventory/:id', protect, adminOnly, async (req, res) => {
   }
 });
 
-// Warehouses
+// GET /api/admin/warehouses
 router.get('/warehouses', protect, adminOnly, async (req, res) => {
   try {
     const warehouses = await Warehouse.find().sort('-createdAt');
@@ -144,6 +146,7 @@ router.get('/warehouses', protect, adminOnly, async (req, res) => {
   }
 });
 
+// POST /api/admin/warehouses
 router.post('/warehouses', protect, adminOnly, async (req, res) => {
   try {
     const warehouse = await Warehouse.create(req.body);
@@ -152,8 +155,6 @@ router.post('/warehouses', protect, adminOnly, async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
-
-module.exports = router;
 
 // GET /api/admin/coupons
 router.get('/coupons', protect, adminOnly, async (req, res) => {
@@ -164,3 +165,5 @@ router.get('/coupons', protect, adminOnly, async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
+
+module.exports = router;

@@ -21,7 +21,7 @@ router.post('/toggle', protect, async (req, res) => {
     let wishlist = await Wishlist.findOne({ user: req.user._id });
     if (!wishlist) wishlist = new Wishlist({ user: req.user._id, products: [] });
 
-    const idx = wishlist.products.indexOf(productId);
+    const idx = wishlist.products.findIndex(p => p.toString() === productId);
     let added = false;
     if (idx === -1) {
       wishlist.products.push(productId);

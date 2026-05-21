@@ -4,11 +4,17 @@ const { protect, adminOnly } = require('../middleware/auth');
 const { Order, Cart } = require('../models/index');
 const Product = require('../models/Product');
 
-// GET /api/orders - user orders
+// GET /api/orders - user orders (paginated)
 router.get('/', protect, async (req, res) => {
   try {
-    const orders = await Order.find({ user: req.user._id }).sort('-createdAt').populate('items.product', 'name images');
-    res.json({ success: true, orders });
+    const { page = 1, limit = 20 } = req.query;
+    const total = await Order.countDocuments({ user: req.user._id });
+    const orders = await Order.find({ user: req.user._id })
+      .sort('-createdAt')
+      .populate('items.product', 'name images')
+      .limit(+limit)
+      .skip((+page - 1) * +limit);
+    res.json({ success: true, orders, total, page: +page, pages: Math.ceil(total / +limit) });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -31,11 +37,29 @@ router.get('/:id', protect, async (req, res) => {
 // POST /api/orders - place order
 router.post('/', protect, async (req, res) => {
   try {
-    const { deliveryAddress, paymentMethod = 'cod', deliveryInstructions, coupon } = req.body;
-    
+    const { deliveryAddress, paymentMethod = 'cod', deliveryInstructions } = req.body;
+
+    if (!deliveryAddress) {
+      return res.status(400).json({ success: false, message: 'Delivery address is required' });
+    }
+
     const cart = await Cart.findOne({ user: req.user._id }).populate('items.product');
     if (!cart || cart.items.length === 0) {
       return res.status(400).json({ success: false, message: 'Cart is empty' });
+    }
+
+    // Revalidate stock for every cart item before creating order
+    for (const item of cart.items) {
+      const product = item.product;
+      if (!product || !product.isActive) {
+        return res.status(400).json({ success: false, message: `Product "${item.name}" is no longer available` });
+      }
+      if (product.stock < item.quantity) {
+        return res.status(400).json({
+          success: false,
+          message: `Only ${product.stock} unit(s) left for "${product.name}"`
+        });
+      }
     }
 
     const items = cart.items.map(item => ({
@@ -58,21 +82,34 @@ router.post('/', protect, async (req, res) => {
       items,
       deliveryAddress,
       pricing: { subtotal, deliveryFee, tax, discount: 0, couponDiscount, total },
-      payment: { method: paymentMethod, status: paymentMethod === 'cod' ? 'pending' : 'pending' },
+      payment: { method: paymentMethod, status: 'pending' },
       coupon: cart.coupon,
       deliveryInstructions,
       estimatedDelivery: new Date(Date.now() + 30 * 60 * 1000),
       statusHistory: [{ status: 'placed', message: 'Order placed successfully', timestamp: new Date() }]
     });
 
-    // Update stock
+    // Atomically decrement stock — only if stock is still sufficient
+    const stockErrors = [];
     for (const item of cart.items) {
-      await Product.findByIdAndUpdate(item.product._id, {
-        $inc: { stock: -item.quantity, soldCount: item.quantity }
+      const updated = await Product.findOneAndUpdate(
+        { _id: item.product._id, stock: { $gte: item.quantity } },
+        { $inc: { stock: -item.quantity, soldCount: item.quantity } }
+      );
+      if (!updated) {
+        stockErrors.push(item.product.name || item.name);
+      }
+    }
+
+    if (stockErrors.length > 0) {
+      // Roll back order if any stock update failed
+      await Order.findByIdAndDelete(order._id);
+      return res.status(409).json({
+        success: false,
+        message: `Stock depleted for: ${stockErrors.join(', ')}. Please refresh your cart.`
       });
     }
 
-    // Clear cart
     await Cart.findOneAndUpdate({ user: req.user._id }, { items: [], coupon: null });
 
     res.status(201).json({ success: true, message: 'Order placed successfully', order });
@@ -92,11 +129,20 @@ router.put('/:id/cancel', protect, async (req, res) => {
     if (['delivered', 'cancelled'].includes(order.status)) {
       return res.status(400).json({ success: false, message: 'Cannot cancel this order' });
     }
+
     order.status = 'cancelled';
     order.cancelledAt = new Date();
     order.cancellationReason = req.body.reason || 'Cancelled by customer';
     order.statusHistory.push({ status: 'cancelled', message: 'Order cancelled', timestamp: new Date() });
     await order.save();
+
+    // Restore stock for all items
+    for (const item of order.items) {
+      await Product.findByIdAndUpdate(item.product, {
+        $inc: { stock: item.quantity, soldCount: -item.quantity }
+      });
+    }
+
     res.json({ success: true, message: 'Order cancelled', order });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

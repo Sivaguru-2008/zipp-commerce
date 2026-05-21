@@ -11,6 +11,10 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 // GET /api/products
 router.get('/', async (req, res) => {
   try {
@@ -18,7 +22,7 @@ router.get('/', async (req, res) => {
     const query = { isActive: true };
     if (category) query.category = category;
     if (subcategory) query.subcategory = subcategory;
-    if (brand) query.brand = new RegExp(brand, 'i');
+    if (brand) query.brand = new RegExp(escapeRegex(brand), 'i');
     if (minPrice || maxPrice) query.price = {};
     if (minPrice) query.price.$gte = +minPrice;
     if (maxPrice) query.price.$lte = +maxPrice;
@@ -28,10 +32,11 @@ router.get('/', async (req, res) => {
     const { q, minRating, minDiscount } = req.query;
     const searchTerm = search || q;
     if (searchTerm) {
+      const escaped = escapeRegex(searchTerm);
       query.$or = [
-        { name: new RegExp(searchTerm, 'i') },
-        { brand: new RegExp(searchTerm, 'i') },
-        { tags: new RegExp(searchTerm, 'i') }
+        { name: new RegExp(escaped, 'i') },
+        { brand: new RegExp(escaped, 'i') },
+        { tags: new RegExp(escaped, 'i') }
       ];
     }
     if (minRating) query.rating = { $gte: +minRating };
@@ -58,12 +63,13 @@ router.get('/search', async (req, res) => {
   try {
     const { q, limit = 10 } = req.query;
     if (!q) return res.json({ success: true, products: [] });
+    const escaped = escapeRegex(q);
     const products = await Product.find({
       isActive: true,
       $or: [
-        { name: new RegExp(q, 'i') },
-        { brand: new RegExp(q, 'i') },
-        { tags: new RegExp(q, 'i') }
+        { name: new RegExp(escaped, 'i') },
+        { brand: new RegExp(escaped, 'i') },
+        { tags: new RegExp(escaped, 'i') }
       ]
     }).limit(+limit).select('name slug price mrp images brand discount deliveryTime stock');
     res.json({ success: true, products });
