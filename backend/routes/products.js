@@ -2,14 +2,52 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
+const { v2: cloudinary } = require('cloudinary');
 const Product = require('../models/Product');
-const { protect, adminOnly, optionalAuth } = require('../middleware/auth');
+const { protect, adminOnly } = require('../middleware/auth');
 
-const storage = multer.diskStorage({
+// Determine storage backend: Cloudinary if credentials are real, disk otherwise
+const CLOUDINARY_CONFIGURED =
+  process.env.CLOUDINARY_CLOUD_NAME &&
+  process.env.CLOUDINARY_CLOUD_NAME !== 'your_cloud_name' &&
+  process.env.CLOUDINARY_API_KEY &&
+  process.env.CLOUDINARY_API_KEY !== 'your_cloudinary_api_key';
+
+if (CLOUDINARY_CONFIGURED) {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key:    process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+  });
+}
+
+// Custom Multer storage engine for Cloudinary v2 (streams file directly, no temp disk write)
+const cloudinaryStorage = {
+  _handleFile(req, file, cb) {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { folder: 'zipp-products', resource_type: 'auto' },
+      (err, result) => {
+        if (err) return cb(err);
+        cb(null, { path: result.secure_url, filename: result.public_id, size: result.bytes });
+      }
+    );
+    file.stream.pipe(uploadStream);
+  },
+  _removeFile(req, file, cb) {
+    if (file.filename) cloudinary.uploader.destroy(file.filename, cb);
+    else cb(null);
+  }
+};
+
+const diskStorage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, path.join(__dirname, '../uploads')),
-  filename: (req, file, cb) => cb(null, 'product-' + Date.now() + path.extname(file.originalname))
+  filename:    (req, file, cb) => cb(null, 'product-' + Date.now() + path.extname(file.originalname))
 });
-const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
+
+const upload = multer({
+  storage: CLOUDINARY_CONFIGURED ? cloudinaryStorage : diskStorage,
+  limits: { fileSize: 5 * 1024 * 1024 }
+});
 
 function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -114,7 +152,7 @@ router.post('/', protect, adminOnly, upload.array('images', 5), async (req, res)
   try {
     const data = { ...req.body };
     if (req.files && req.files.length > 0) {
-      data.images = req.files.map(f => `/uploads/${f.filename}`);
+      data.images = req.files.map(f => CLOUDINARY_CONFIGURED ? f.path : `/uploads/${f.filename}`);
     }
     if (typeof data.tags === 'string') data.tags = data.tags.split(',').map(t => t.trim());
     if (typeof data.badges === 'string') data.badges = data.badges.split(',').map(b => b.trim());
@@ -130,7 +168,7 @@ router.put('/:id', protect, adminOnly, upload.array('images', 5), async (req, re
   try {
     const data = { ...req.body };
     if (req.files && req.files.length > 0) {
-      data.images = req.files.map(f => `/uploads/${f.filename}`);
+      data.images = req.files.map(f => CLOUDINARY_CONFIGURED ? f.path : `/uploads/${f.filename}`);
     }
     if (typeof data.tags === 'string') data.tags = data.tags.split(',').map(t => t.trim());
     if (typeof data.badges === 'string') data.badges = data.badges.split(',').map(b => b.trim());
