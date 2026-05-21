@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Checkout – Zipp</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    .checkout-layout { display: grid; grid-template-columns: 1fr 380px; gap: 28px; max-width: 1200px; margin: 40px auto; padding: 0 24px; }
+    @media(max-width:900px){ .checkout-layout { grid-template-columns: 1fr; } }
+    .checkout-step { background: white; border-radius: 20px; border: 1.5px solid var(--border); margin-bottom: 20px; overflow: hidden; box-shadow: var(--shadow-sm); }
+    .step-header { padding: 20px 24px; display: flex; align-items: center; gap: 14px; border-bottom: 1px solid var(--border); }
+    .step-number { width: 32px; height: 32px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; flex-shrink: 0; }
+    .step-title { font-family: var(--font-display); font-size: 17px; font-weight: 700; }
+    .step-body { padding: 24px; }
+    .address-card { border: 1.5px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 12px; cursor: pointer; transition: all .2s; }
+    .address-card.selected { border-color: var(--primary); background: var(--primary-light); }
+    .address-card:hover { border-color: var(--primary); }
+    .address-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .address-label { font-size: 12px; font-weight: 700; background: var(--bg); padding: 2px 8px; border-radius: 6px; color: var(--text-secondary); }
+    .address-name { font-weight: 600; font-size: 14px; }
+    .address-text { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+    .add-address-btn { border: 2px dashed var(--border); border-radius: 14px; padding: 16px; text-align: center; cursor: pointer; color: var(--primary); font-weight: 600; font-size: 14px; transition: all .2s; background: none; width: 100%; font-family: var(--font-body); }
+    .add-address-btn:hover { border-color: var(--primary); background: var(--primary-light); }
+    .add-address-form { display: none; margin-top: 16px; background: var(--bg); border-radius: 14px; padding: 20px; }
+    .add-address-form.open { display: block; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media(max-width:600px){ .form-grid { grid-template-columns: 1fr; } }
+    .payment-option { border: 1.5px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 10px; cursor: pointer; display: flex; align-items: center; gap: 14px; transition: all .2s; }
+    .payment-option.selected { border-color: var(--primary); background: var(--primary-light); }
+    .payment-option:hover { border-color: var(--primary); }
+    .payment-option input[type=radio] { accent-color: var(--primary); width: 18px; height: 18px; }
+    .payment-icon { font-size: 24px; }
+    .payment-info h4 { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+    .payment-info p { font-size: 12px; color: var(--text-muted); }
+    .instructions-input { width: 100%; padding: 12px 16px; border: 1.5px solid var(--border); border-radius: 12px; font-family: var(--font-body); font-size: 14px; outline: none; resize: vertical; min-height: 80px; transition: border-color .2s; }
+    .instructions-input:focus { border-color: var(--primary); }
+    .order-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .order-item:last-child { border-bottom: none; }
+    .order-item-img { width: 50px; height: 50px; border-radius: 10px; object-fit: cover; background: var(--bg); flex-shrink: 0; }
+    .order-item-info { flex: 1; }
+    .order-item-name { font-size: 13px; font-weight: 600; }
+    .order-item-qty { font-size: 12px; color: var(--text-muted); }
+    .order-item-price { font-weight: 700; font-size: 14px; color: var(--primary); }
+    .place-order-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, var(--primary), #9b59f6); color: white; border: none; border-radius: 14px; font-size: 17px; font-weight: 700; font-family: var(--font-body); cursor: pointer; transition: all .2s; margin-top: 16px; }
+    .place-order-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(108,59,255,.4); }
+    .place-order-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+    .summary-sticky { background: white; border-radius: 20px; border: 1.5px solid var(--border); overflow: hidden; box-shadow: var(--shadow-sm); position: sticky; top: 80px; }
+    .sum-section { padding: 20px 24px; border-bottom: 1px solid var(--border); }
+    .sum-section:last-child { border-bottom: none; }
+    .sum-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 10px; color: var(--text-secondary); }
+    .sum-row.total { font-size: 18px; font-weight: 700; color: var(--text-primary); padding-top: 12px; border-top: 1px solid var(--border); }
+    .secure-badge { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); justify-content: center; margin-top: 12px; }
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo"><span class="logo-icon">⚡</span><span class="logo-text">Zipp</span></a>
+    <div style="flex:1;text-align:center">
+      <div style="display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;color:var(--text-muted)">
+        <span style="color:var(--primary);font-weight:700">1 Cart</span> › 
+        <span style="color:var(--primary);font-weight:700">2 Address</span> › 
+        <span style="color:var(--text-muted)">3 Payment</span> › 
+        <span style="color:var(--text-muted)">4 Confirm</span>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <a href="/pages/cart.html" class="nav-btn" style="background:var(--bg);color:var(--text-primary)">← Cart</a>
+    </div>
+  </div>
+</nav>
+
+<div class="checkout-layout">
+  <div id="checkoutLeft">
+    <!-- ADDRESS STEP -->
+    <div class="checkout-step">
+      <div class="step-header">
+        <div class="step-number">1</div>
+        <div class="step-title">📍 Delivery Address</div>
+      </div>
+      <div class="step-body">
+        <div id="addressList"></div>
+        <button class="add-address-btn" onclick="toggleAddressForm()">+ Add New Address</button>
+        <div class="add-address-form" id="addAddressForm">
+          <h4 style="margin-bottom:16px;font-size:15px">New Delivery Address</h4>
+          <div class="form-grid">
+            <div class="form-group"><label>Full Name *</label><input type="text" id="addrName" placeholder="John Doe"/></div>
+            <div class="form-group"><label>Phone *</label><input type="tel" id="addrPhone" placeholder="9876543210" maxlength="10"/></div>
+          </div>
+          <div class="form-group"><label>Address Line 1 *</label><input type="text" id="addrLine1" placeholder="Flat/House No, Street"/></div>
+          <div class="form-group"><label>Address Line 2</label><input type="text" id="addrLine2" placeholder="Landmark, Area"/></div>
+          <div class="form-grid">
+            <div class="form-group"><label>City *</label><input type="text" id="addrCity" placeholder="Bangalore"/></div>
+            <div class="form-group"><label>Pincode *</label><input type="text" id="addrPin" placeholder="560001" maxlength="6"/></div>
+          </div>
+          <div class="form-grid">
+            <div class="form-group"><label>State *</label><input type="text" id="addrState" placeholder="Karnataka"/></div>
+            <div class="form-group">
+              <label>Label</label>
+              <select id="addrLabel" style="padding:12px 16px;border:1.5px solid var(--border);border-radius:12px;font-family:var(--font-body);font-size:15px;outline:none;background:white;width:100%">
+                <option value="Home">🏠 Home</option>
+                <option value="Work">💼 Work</option>
+                <option value="Other">📍 Other</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn-primary" onclick="saveAddress()">Save Address</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAYMENT STEP -->
+    <div class="checkout-step">
+      <div class="step-header">
+        <div class="step-number">2</div>
+        <div class="step-title">💳 Payment Method</div>
+      </div>
+      <div class="step-body">
+        <div class="payment-option selected" onclick="selectPayment('cod', this)">
+          <input type="radio" name="payment" value="cod" checked/>
+          <span class="payment-icon">💵</span>
+          <div class="payment-info">
+            <h4>Cash on Delivery</h4>
+            <p>Pay when your order arrives</p>
+          </div>
+        </div>
+        <div class="payment-option" onclick="selectPayment('razorpay', this)">
+          <input type="radio" name="payment" value="razorpay"/>
+          <span class="payment-icon">💳</span>
+          <div class="payment-info">
+            <h4>Online Payment (Razorpay)</h4>
+            <p>UPI, Cards, Net Banking, Wallets</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DELIVERY INSTRUCTIONS -->
+    <div class="checkout-step">
+      <div class="step-header">
+        <div class="step-number">3</div>
+        <div class="step-title">📝 Delivery Instructions</div>
+      </div>
+      <div class="step-body">
+        <textarea class="instructions-input" id="deliveryInstructions" placeholder="E.g. Ring doorbell twice, leave at door, call when arrived…"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- ORDER SUMMARY -->
+  <div>
+    <div class="summary-sticky">
+      <div class="sum-section">
+        <h3 style="font-family:var(--font-display);font-size:17px;font-weight:700;margin-bottom:16px">Order Summary</h3>
+        <div id="orderItemsPreview"></div>
+      </div>
+      <div class="sum-section">
+        <div class="sum-row"><span>Subtotal</span><span id="coSubtotal">₹0</span></div>
+        <div class="sum-row"><span>Delivery</span><span id="coDelivery">₹40</span></div>
+        <div class="sum-row"><span>Tax (5%)</span><span id="coTax">₹0</span></div>
+        <div class="sum-row" id="coDiscRow" style="display:none;color:var(--green)">
+          <span>Discount</span><span id="coDiscount">-₹0</span>
+        </div>
+        <div class="sum-row total"><span>Total</span><span id="coTotal">₹0</span></div>
+        <div style="background:var(--green-light);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--green);font-weight:600;margin-top:14px">
+          ⚡ Estimated Delivery: 10–20 minutes
+        </div>
+        <button class="place-order-btn" id="placeOrderBtn" onclick="placeOrder()">
+          🛒 Place Order
+        </button>
+        <div class="secure-badge">🔒 Secure & Encrypted Checkout</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toastContainer"></div>
+
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/ui.js"></script>
+<script>
+  let selectedAddress = null;
+  let selectedPayment = 'cod';
+  let cartSummary = {};
+  let cartItems = [];
+  let profile = null;
+  let addressFormOpen = false;
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    if (!requireAuth()) return;
+    updateNavAuth();
+    await Promise.all([loadProfile(), loadCartPreview()]);
+  });
+
+  async function loadProfile() {
+    try {
+      const res = await UserAPI.getProfile();
+      profile = res.user;
+      renderAddresses(profile.addresses || []);
+    } catch(e) { showToast('Failed to load profile', 'error'); }
+  }
+
+  async function loadCartPreview() {
+    try {
+      const res = await CartAPI.get();
+      cartItems = res.cart?.items || [];
+      const subtotal = res.subtotal || 0;
+      const deliveryFee = subtotal >= 499 ? 0 : 40;
+      const tax = Math.round(subtotal * 0.05);
+      const coupon = JSON.parse(localStorage.getItem('zipp_coupon') || 'null');
+      const couponDiscount = coupon?.discount || 0;
+      const total = subtotal + deliveryFee + tax - couponDiscount;
+
+      document.getElementById('coSubtotal').textContent = `₹${subtotal}`;
+      document.getElementById('coDelivery').textContent = deliveryFee === 0 ? 'FREE' : `₹${deliveryFee}`;
+      document.getElementById('coTax').textContent = `₹${tax}`;
+      document.getElementById('coTotal').textContent = `₹${total}`;
+      if (couponDiscount > 0) {
+        document.getElementById('coDiscRow').style.display = 'flex';
+        document.getElementById('coDiscount').textContent = `-₹${couponDiscount}`;
+      }
+
+      document.getElementById('orderItemsPreview').innerHTML = cartItems.slice(0, 4).map(item => `
+        <div class="order-item">
+          <img class="order-item-img" src="${item.image || item.product?.images?.[0] || 'https://via.placeholder.com/50'}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/50'"/>
+          <div class="order-item-info">
+            <div class="order-item-name">${item.name}</div>
+            <div class="order-item-qty">Qty: ${item.quantity}</div>
+          </div>
+          <span class="order-item-price">₹${item.price * item.quantity}</span>
+        </div>`).join('') + (cartItems.length > 4 ? `<p style="font-size:12px;color:var(--text-muted);text-align:center;padding:8px">+ ${cartItems.length - 4} more items</p>` : '');
+
+      cartSummary = { subtotal, deliveryFee, tax, couponDiscount, total };
+    } catch(e) {}
+  }
+
+  function renderAddresses(addresses) {
+    const list = document.getElementById('addressList');
+    if (!addresses.length) { list.innerHTML = ''; return; }
+    list.innerHTML = addresses.map((addr, i) => `
+      <div class="address-card ${addr.isDefault ? 'selected' : ''}" onclick="selectAddr(${i})" id="addr-${i}">
+        <div class="address-card-header">
+          <span class="address-label">${addr.label || 'Home'}</span>
+          ${addr.isDefault ? '<span style="font-size:12px;color:var(--primary);font-weight:600">✅ Default</span>' : ''}
+        </div>
+        <div class="address-name">${addr.fullName || profile?.name}</div>
+        <div class="address-text">${addr.addressLine1}${addr.addressLine2 ? ', ' + addr.addressLine2 : ''}, ${addr.city} – ${addr.pincode}</div>
+        <div class="address-text">📞 ${addr.phone || profile?.phone || ''}</div>
+      </div>`).join('');
+
+    const defaultAddr = addresses.findIndex(a => a.isDefault);
+    if (defaultAddr >= 0) selectAddr(defaultAddr);
+    else if (addresses.length) selectAddr(0);
+  }
+
+  function selectAddr(i) {
+    document.querySelectorAll('.address-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById(`addr-${i}`)?.classList.add('selected');
+    const addr = profile?.addresses?.[i];
+    selectedAddress = addr || null;
+  }
+
+  function toggleAddressForm() {
+    addressFormOpen = !addressFormOpen;
+    document.getElementById('addAddressForm').classList.toggle('open', addressFormOpen);
+  }
+
+  async function saveAddress() {
+    const addr = {
+      label: document.getElementById('addrLabel').value,
+      fullName: document.getElementById('addrName').value.trim(),
+      phone: document.getElementById('addrPhone').value.trim(),
+      addressLine1: document.getElementById('addrLine1').value.trim(),
+      addressLine2: document.getElementById('addrLine2').value.trim(),
+      city: document.getElementById('addrCity').value.trim(),
+      state: document.getElementById('addrState').value.trim(),
+      pincode: document.getElementById('addrPin').value.trim(),
+    };
+    if (!addr.fullName || !addr.addressLine1 || !addr.city || !addr.pincode) {
+      showToast('Please fill all required fields', 'warning'); return;
+    }
+    try {
+      const res = await UserAPI.addAddress(addr);
+      profile = res.user;
+      renderAddresses(profile.addresses || []);
+      document.getElementById('addAddressForm').classList.remove('open');
+      addressFormOpen = false;
+      showToast('Address saved! ✅', 'success');
+    } catch(e) { showToast(e.message, 'error'); }
+  }
+
+  function selectPayment(method, el) {
+    selectedPayment = method;
+    document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    document.querySelectorAll('input[name=payment]').forEach(r => r.checked = r.value === method);
+  }
+
+  async function placeOrder() {
+    if (!selectedAddress) { showToast('Please select a delivery address', 'warning'); return; }
+    const btn = document.getElementById('placeOrderBtn');
+    btn.disabled = true; btn.textContent = '⏳ Placing Order…';
+
+    const coupon = JSON.parse(localStorage.getItem('zipp_coupon') || 'null');
+    const orderData = {
+      deliveryAddress: selectedAddress,
+      paymentMethod: selectedPayment,
+      deliveryInstructions: document.getElementById('deliveryInstructions').value,
+      coupon
+    };
+
+    try {
+      const res = await OrderAPI.place(orderData);
+      const order = res.order;
+
+      if (selectedPayment === 'razorpay') {
+        await handleRazorpay(order);
+      } else {
+        localStorage.removeItem('zipp_coupon');
+        showToast('Order placed! 🎉', 'success');
+        setTimeout(() => { window.location.href = `/pages/order-success.html?id=${order._id}`; }, 800);
+      }
+    } catch(e) {
+      showToast(e.message || 'Failed to place order', 'error');
+      btn.disabled = false; btn.textContent = '🛒 Place Order';
+    }
+  }
+
+  async function handleRazorpay(order) {
+    try {
+      const payRes = await PaymentAPI.createOrder(order._id);
+      if (payRes.demo) {
+        showToast('Demo mode: Razorpay not configured. Order placed!', 'info');
+        localStorage.removeItem('zipp_coupon');
+        setTimeout(() => { window.location.href = `/pages/order-success.html?id=${order._id}`; }, 1000);
+        return;
+      }
+      const options = {
+        key: payRes.key,
+        amount: payRes.amount,
+        currency: payRes.currency,
+        name: 'Zipp Commerce',
+        description: `Order #${order.orderNumber}`,
+        order_id: payRes.razorpayOrderId,
+        handler: async (response) => {
+          await PaymentAPI.verify({ ...response, orderId: order._id });
+          localStorage.removeItem('zipp_coupon');
+          window.location.href = `/pages/order-success.html?id=${order._id}`;
+        },
+        prefill: { name: profile?.name, email: profile?.email, contact: profile?.phone },
+        theme: { color: '#6C3BFF' }
+      };
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch(e) {
+      showToast('Payment setup failed. Try COD.', 'error');
+      document.getElementById('placeOrderBtn').disabled = false;
+      document.getElementById('placeOrderBtn').textContent = '🛒 Place Order';
+    }
+  }
+</script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</body>
+</html>

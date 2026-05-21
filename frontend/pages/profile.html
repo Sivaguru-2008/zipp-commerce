@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Profile – Zipp</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    .profile-layout { display: grid; grid-template-columns: 260px 1fr; gap: 28px; max-width: 1000px; margin: 40px auto; padding: 0 24px; }
+    @media(max-width:768px){ .profile-layout { grid-template-columns: 1fr; } }
+    .profile-sidebar { position: sticky; top: 80px; align-self: start; }
+    .profile-card { background: white; border-radius: 20px; border: 1.5px solid var(--border); overflow: hidden; box-shadow: var(--shadow-sm); }
+    .profile-avatar-section { padding: 28px 20px; text-align: center; background: linear-gradient(135deg, var(--primary), #9b59f6); }
+    .avatar-circle { width: 80px; height: 80px; border-radius: 50%; background: rgba(255,255,255,.25); border: 3px solid rgba(255,255,255,.5); display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; color: white; margin: 0 auto 12px; }
+    .avatar-name { color: white; font-family: var(--font-display); font-size: 18px; font-weight: 700; }
+    .avatar-email { color: rgba(255,255,255,.8); font-size: 13px; margin-top: 4px; }
+    .nav-menu { padding: 16px; }
+    .nav-menu-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; cursor: pointer; font-size: 14px; font-weight: 500; color: var(--text-secondary); transition: all .2s; border: none; background: none; width: 100%; text-align: left; font-family: var(--font-body); }
+    .nav-menu-item:hover, .nav-menu-item.active { background: var(--primary-light); color: var(--primary); }
+    .nav-menu-item span { font-size: 18px; }
+    .panel { background: white; border-radius: 20px; border: 1.5px solid var(--border); overflow: hidden; box-shadow: var(--shadow-sm); margin-bottom: 20px; }
+    .panel-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; padding: 20px 24px; border-bottom: 1px solid var(--border); }
+    .panel-body { padding: 24px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media(max-width:600px){ .form-row { grid-template-columns: 1fr; } }
+    .address-item { border: 1.5px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 12px; position: relative; }
+    .address-item.default { border-color: var(--primary); background: var(--primary-light); }
+    .address-item-label { font-size: 11px; font-weight: 700; background: var(--bg); padding: 3px 8px; border-radius: 6px; color: var(--text-secondary); display: inline-block; margin-bottom: 6px; }
+    .address-item.default .address-item-label { background: white; color: var(--primary); }
+    .address-item-name { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+    .address-item-text { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+    .address-item-actions { position: absolute; top: 16px; right: 16px; display: flex; gap: 6px; }
+    .addr-action-btn { padding: 5px 10px; border-radius: 7px; font-size: 12px; font-weight: 600; border: none; cursor: pointer; font-family: var(--font-body); transition: all .2s; }
+    .addr-del-btn { background: #fef2f2; color: var(--red); }
+    .addr-del-btn:hover { background: var(--red); color: white; }
+    .addr-def-btn { background: var(--primary-light); color: var(--primary); }
+    .addr-def-btn:hover { background: var(--primary); color: white; }
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .stat-card { background: var(--bg); border-radius: 14px; padding: 16px; text-align: center; }
+    .stat-value { font-family: var(--font-display); font-size: 24px; font-weight: 800; color: var(--primary); }
+    .stat-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+    .section-panel { display: none; }
+    .section-panel.active { display: block; }
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo"><span class="logo-icon">⚡</span><span class="logo-text">Zipp</span></a>
+    <div class="nav-actions">
+      <a href="/pages/login.html" class="nav-btn nav-login" id="loginBtn"><span>👤</span> Login</a>
+      <div class="nav-user hidden" id="userMenu">
+        <button class="nav-user-btn" onclick="toggleUserDropdown()">
+          <span class="user-avatar" id="userAvatar">J</span>
+          <span id="userName">John</span> ▾
+        </button>
+        <div class="user-dropdown hidden" id="userDropdown">
+          <a href="/pages/profile.html">👤 My Profile</a>
+          <a href="/pages/orders.html">📦 My Orders</a>
+          <a href="/pages/wishlist.html">❤️ Wishlist</a>
+          <hr/><button onclick="logout()">🚪 Logout</button>
+        </div>
+      </div>
+      <a href="/pages/cart.html" class="nav-cart"><span>🛒</span><span class="cart-badge" id="cartBadge">0</span></a>
+    </div>
+  </div>
+</nav>
+
+<div class="profile-layout">
+  <!-- SIDEBAR -->
+  <div class="profile-sidebar">
+    <div class="profile-card">
+      <div class="profile-avatar-section">
+        <div class="avatar-circle" id="avatarCircle">J</div>
+        <div class="avatar-name" id="avatarName">Loading…</div>
+        <div class="avatar-email" id="avatarEmail"></div>
+      </div>
+      <div class="nav-menu">
+        <button class="nav-menu-item active" onclick="switchSection('overview', this)"><span>📊</span> Overview</button>
+        <button class="nav-menu-item" onclick="switchSection('personal', this)"><span>👤</span> Personal Info</button>
+        <button class="nav-menu-item" onclick="switchSection('addresses', this)"><span>📍</span> My Addresses</button>
+        <button class="nav-menu-item" onclick="switchSection('security', this)"><span>🔒</span> Security</button>
+        <button class="nav-menu-item" onclick="window.location.href='/pages/orders.html'"><span>📦</span> My Orders</button>
+        <button class="nav-menu-item" onclick="window.location.href='/pages/wishlist.html'"><span>❤️</span> Wishlist</button>
+        <button class="nav-menu-item" onclick="logout()" style="color:var(--red)"><span>🚪</span> Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div>
+    <!-- OVERVIEW -->
+    <div class="section-panel active" id="panel-overview">
+      <div class="panel">
+        <div class="panel-title">👋 Account Overview</div>
+        <div class="panel-body">
+          <div class="stats-grid">
+            <div class="stat-card"><div class="stat-value" id="statOrders">0</div><div class="stat-label">Total Orders</div></div>
+            <div class="stat-card"><div class="stat-value" id="statDelivered">0</div><div class="stat-label">Delivered</div></div>
+            <div class="stat-card"><div class="stat-value" id="statAddresses">0</div><div class="stat-label">Saved Addresses</div></div>
+          </div>
+          <div style="margin-top:20px;padding:16px;background:var(--green-light);border-radius:12px;display:flex;align-items:center;gap:12px">
+            <span style="font-size:28px">⚡</span>
+            <div><strong style="font-size:15px">Zipp Member</strong><br/><span style="font-size:13px;color:var(--green)">Enjoy 10-minute delivery on all orders!</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PERSONAL INFO -->
+    <div class="section-panel" id="panel-personal">
+      <div class="panel">
+        <div class="panel-title">👤 Personal Information</div>
+        <div class="panel-body">
+          <div class="form-row">
+            <div class="form-group"><label>Full Name</label><input type="text" id="profileName" placeholder="John Doe"/></div>
+            <div class="form-group"><label>Phone</label><input type="tel" id="profilePhone" placeholder="9876543210" maxlength="10"/></div>
+          </div>
+          <div class="form-group"><label>Email (read-only)</label><input type="email" id="profileEmail" readonly style="background:var(--bg);cursor:not-allowed"/></div>
+          <button class="btn-primary" onclick="updateProfile()">Save Changes</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADDRESSES -->
+    <div class="section-panel" id="panel-addresses">
+      <div class="panel">
+        <div class="panel-title">📍 My Addresses</div>
+        <div class="panel-body">
+          <div id="addressesList"></div>
+          <div style="margin-top:16px">
+            <button class="add-address-btn" onclick="toggleNewAddrForm()" style="border:2px dashed var(--border);border-radius:14px;padding:14px;text-align:center;width:100%;cursor:pointer;color:var(--primary);font-weight:600;font-size:14px;background:none;font-family:var(--font-body)">
+              + Add New Address
+            </button>
+            <div id="newAddrForm" style="display:none;margin-top:16px;background:var(--bg);border-radius:14px;padding:20px">
+              <div class="form-row">
+                <div class="form-group"><label>Full Name *</label><input type="text" id="nAddrName"/></div>
+                <div class="form-group"><label>Phone *</label><input type="tel" id="nAddrPhone" maxlength="10"/></div>
+              </div>
+              <div class="form-group"><label>Address Line 1 *</label><input type="text" id="nAddrLine1"/></div>
+              <div class="form-group"><label>Address Line 2</label><input type="text" id="nAddrLine2"/></div>
+              <div class="form-row">
+                <div class="form-group"><label>City *</label><input type="text" id="nAddrCity"/></div>
+                <div class="form-group"><label>Pincode *</label><input type="text" id="nAddrPin" maxlength="6"/></div>
+              </div>
+              <div class="form-row">
+                <div class="form-group"><label>State *</label><input type="text" id="nAddrState"/></div>
+                <div class="form-group"><label>Label</label>
+                  <select id="nAddrLabel" style="padding:12px;border:1.5px solid var(--border);border-radius:12px;font-family:var(--font-body);width:100%;outline:none">
+                    <option value="Home">🏠 Home</option><option value="Work">💼 Work</option><option value="Other">📍 Other</option>
+                  </select>
+                </div>
+              </div>
+              <button class="btn-primary" onclick="addNewAddress()">Save Address</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECURITY -->
+    <div class="section-panel" id="panel-security">
+      <div class="panel">
+        <div class="panel-title">🔒 Change Password</div>
+        <div class="panel-body">
+          <div class="form-group"><label>Current Password</label><input type="password" id="curPass" placeholder="Current password"/></div>
+          <div class="form-group"><label>New Password</label><input type="password" id="newPass" placeholder="New password (min 6 chars)"/></div>
+          <div class="form-group"><label>Confirm New Password</label><input type="password" id="confPass" placeholder="Confirm new password"/></div>
+          <button class="btn-primary" onclick="changePassword()">Update Password</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toastContainer"></div>
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/ui.js"></script>
+<script>
+  let userProfile = null;
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    if (!requireAuth()) return;
+    updateNavAuth();
+    await loadProfile();
+  });
+
+  async function loadProfile() {
+    try {
+      const [profileRes, ordersRes] = await Promise.all([UserAPI.getProfile(), OrderAPI.getAll()]);
+      userProfile = profileRes.user;
+      const orders = ordersRes.orders || [];
+      const delivered = orders.filter(o => o.status === 'delivered').length;
+
+      document.getElementById('avatarCircle').textContent = userProfile.name.charAt(0).toUpperCase();
+      document.getElementById('avatarName').textContent = userProfile.name;
+      document.getElementById('avatarEmail').textContent = userProfile.email;
+      document.getElementById('profileName').value = userProfile.name;
+      document.getElementById('profilePhone').value = userProfile.phone || '';
+      document.getElementById('profileEmail').value = userProfile.email;
+
+      document.getElementById('statOrders').textContent = orders.length;
+      document.getElementById('statDelivered').textContent = delivered;
+      document.getElementById('statAddresses').textContent = (userProfile.addresses || []).length;
+
+      renderAddressList(userProfile.addresses || []);
+    } catch(e) { showToast('Error loading profile', 'error'); }
+  }
+
+  function switchSection(id, btn) {
+    document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-menu-item').forEach(b => b.classList.remove('active'));
+    document.getElementById(`panel-${id}`)?.classList.add('active');
+    btn.classList.add('active');
+  }
+
+  async function updateProfile() {
+    const name = document.getElementById('profileName').value.trim();
+    const phone = document.getElementById('profilePhone').value.trim();
+    if (!name) { showToast('Name is required', 'warning'); return; }
+    try {
+      const res = await UserAPI.updateProfile({ name, phone });
+      const u = getUser(); u.name = res.user.name; setAuth(getToken(), u);
+      showToast('Profile updated! ✅', 'success');
+      document.getElementById('avatarCircle').textContent = name.charAt(0).toUpperCase();
+      document.getElementById('avatarName').textContent = name;
+    } catch(e) { showToast(e.message, 'error'); }
+  }
+
+  async function changePassword() {
+    const cur = document.getElementById('curPass').value;
+    const nw = document.getElementById('newPass').value;
+    const conf = document.getElementById('confPass').value;
+    if (!cur || !nw || !conf) { showToast('Fill all fields', 'warning'); return; }
+    if (nw !== conf) { showToast('Passwords do not match', 'error'); return; }
+    if (nw.length < 6) { showToast('Min 6 characters', 'warning'); return; }
+    try {
+      await AuthAPI.changePassword(cur, nw);
+      showToast('Password changed! 🔒', 'success');
+      document.getElementById('curPass').value = '';
+      document.getElementById('newPass').value = '';
+      document.getElementById('confPass').value = '';
+    } catch(e) { showToast(e.message, 'error'); }
+  }
+
+  function renderAddressList(addresses) {
+    const list = document.getElementById('addressesList');
+    if (!addresses.length) { list.innerHTML = '<p style="color:var(--text-muted)">No saved addresses</p>'; return; }
+    list.innerHTML = addresses.map((addr, i) => `
+      <div class="address-item ${addr.isDefault ? 'default' : ''}">
+        <div class="address-item-label">${addr.label || 'Home'} ${addr.isDefault ? '✅ Default' : ''}</div>
+        <div class="address-item-name">${addr.fullName || userProfile?.name}</div>
+        <div class="address-item-text">${addr.addressLine1}${addr.addressLine2 ? ', ' + addr.addressLine2 : ''}</div>
+        <div class="address-item-text">${addr.city} – ${addr.pincode}, ${addr.state}</div>
+        <div class="address-item-text">📞 ${addr.phone || ''}</div>
+        <div class="address-item-actions">
+          ${!addr.isDefault ? `<button class="addr-action-btn addr-def-btn" onclick="setDefault('${addr._id}')">Set Default</button>` : ''}
+          <button class="addr-action-btn addr-del-btn" onclick="deleteAddress('${addr._id}')">🗑️</button>
+        </div>
+      </div>`).join('');
+  }
+
+  let newAddrFormOpen = false;
+  function toggleNewAddrForm() {
+    newAddrFormOpen = !newAddrFormOpen;
+    document.getElementById('newAddrForm').style.display = newAddrFormOpen ? 'block' : 'none';
+  }
+
+  async function addNewAddress() {
+    const addr = {
+      label: document.getElementById('nAddrLabel').value,
+      fullName: document.getElementById('nAddrName').value.trim(),
+      phone: document.getElementById('nAddrPhone').value.trim(),
+      addressLine1: document.getElementById('nAddrLine1').value.trim(),
+      addressLine2: document.getElementById('nAddrLine2').value.trim(),
+      city: document.getElementById('nAddrCity').value.trim(),
+      state: document.getElementById('nAddrState').value.trim(),
+      pincode: document.getElementById('nAddrPin').value.trim(),
+    };
+    if (!addr.fullName || !addr.addressLine1 || !addr.city || !addr.pincode) { showToast('Fill required fields', 'warning'); return; }
+    try {
+      const res = await UserAPI.addAddress(addr);
+      userProfile = res.user;
+      renderAddressList(userProfile.addresses || []);
+      document.getElementById('statAddresses').textContent = (userProfile.addresses || []).length;
+      document.getElementById('newAddrForm').style.display = 'none';
+      newAddrFormOpen = false;
+      showToast('Address saved! ✅', 'success');
+    } catch(e) { showToast(e.message, 'error'); }
+  }
+
+  async function deleteAddress(id) {
+    if (!confirm('Delete this address?')) return;
+    try {
+      const res = await UserAPI.deleteAddress(id);
+      userProfile = res.user;
+      renderAddressList(userProfile.addresses || []);
+      document.getElementById('statAddresses').textContent = (userProfile.addresses || []).length;
+      showToast('Address deleted', 'success');
+    } catch(e) { showToast(e.message, 'error'); }
+  }
+
+  async function setDefault(id) {
+    try {
+      const res = await UserAPI.updateAddress(id, { isDefault: true });
+      userProfile = res.user;
+      renderAddressList(userProfile.addresses || []);
+      showToast('Default address updated ✅', 'success');
+    } catch(e) { showToast(e.message, 'error'); }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cart – Zipp</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    .cart-page { max-width: 1200px; margin: 40px auto; padding: 0 24px; }
+    .cart-page-layout { display: grid; grid-template-columns: 1fr 380px; gap: 28px; }
+    @media(max-width:900px){ .cart-page-layout { grid-template-columns: 1fr; } }
+    .cart-panel { background: white; border-radius: 20px; border: 1.5px solid var(--border); overflow: hidden; box-shadow: var(--shadow-sm); }
+    .cart-panel-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .cart-panel-header h2 { font-family: var(--font-display); font-size: 20px; font-weight: 700; }
+    .cart-panel-body { padding: 0; }
+    .cart-page-item { display: flex; align-items: center; gap: 16px; padding: 20px 24px; border-bottom: 1px solid var(--border); transition: background .15s; }
+    .cart-page-item:last-child { border-bottom: none; }
+    .cart-page-item:hover { background: var(--bg); }
+    .cart-page-img { width: 80px; height: 80px; border-radius: 12px; object-fit: cover; background: var(--bg); flex-shrink: 0; }
+    .cart-page-info { flex: 1; min-width: 0; }
+    .cart-page-brand { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-bottom: 2px; }
+    .cart-page-name { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .cart-page-unit { font-size: 12px; color: var(--text-muted); }
+    .cart-page-price { font-size: 17px; font-weight: 700; color: var(--primary); min-width: 80px; text-align: right; }
+    .cart-page-remove { padding: 6px 10px; background: none; border: 1.5px solid var(--border); border-radius: 8px; color: var(--red); cursor: pointer; font-size: 14px; transition: all .2s; margin-left: 10px; }
+    .cart-page-remove:hover { background: var(--red); color: white; border-color: var(--red); }
+    .cart-qty-ctrl { display: flex; align-items: center; background: var(--bg); border: 1.5px solid var(--border); border-radius: 10px; overflow: hidden; }
+    .cart-qty-ctrl button { width: 34px; height: 36px; font-size: 18px; font-weight: 600; border: none; background: none; cursor: pointer; transition: background .15s; }
+    .cart-qty-ctrl button:hover { background: var(--border); }
+    .cart-qty-ctrl span { width: 36px; text-align: center; font-weight: 700; font-size: 15px; }
+
+    /* Summary card */
+    .summary-card { background: white; border-radius: 20px; border: 1.5px solid var(--border); overflow: hidden; box-shadow: var(--shadow-sm); position: sticky; top: 80px; }
+    .summary-header { padding: 20px 24px; border-bottom: 1px solid var(--border); }
+    .summary-header h3 { font-family: var(--font-display); font-size: 18px; font-weight: 700; }
+    .summary-body { padding: 20px 24px; }
+    .summary-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 12px; color: var(--text-secondary); }
+    .summary-row.total { font-size: 18px; font-weight: 700; color: var(--text-primary); border-top: 1px solid var(--border); padding-top: 14px; margin-top: 14px; }
+    .coupon-box { display: flex; gap: 8px; margin-bottom: 20px; }
+    .coupon-box input { flex: 1; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 14px; font-family: var(--font-body); outline: none; }
+    .coupon-box input:focus { border-color: var(--primary); }
+    .coupon-apply-btn { padding: 10px 16px; background: var(--primary); color: white; border-radius: 10px; font-size: 14px; font-weight: 600; font-family: var(--font-body); cursor: pointer; border: none; transition: background .2s; white-space: nowrap; }
+    .coupon-apply-btn:hover { background: var(--primary-dark); }
+    .coupon-applied { background: var(--green-light); color: var(--green); border-radius: 10px; padding: 10px 14px; font-size: 13px; font-weight: 600; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+    .delivery-info { background: var(--green-light); border-radius: 12px; padding: 12px 16px; font-size: 13px; color: var(--green); font-weight: 600; margin-bottom: 16px; }
+    .empty-cart-page { text-align: center; padding: 80px 40px; }
+    .empty-cart-page .icon { font-size: 72px; margin-bottom: 20px; }
+    .empty-cart-page h2 { font-family: var(--font-display); font-size: 26px; margin-bottom: 8px; }
+    .empty-cart-page p { color: var(--text-muted); margin-bottom: 28px; }
+    .savings-badge { background: var(--green-light); color: var(--green); border-radius: 8px; padding: 6px 14px; font-size: 13px; font-weight: 600; display: inline-block; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo"><span class="logo-icon">⚡</span><span class="logo-text">Zipp</span></a>
+    <div class="nav-search-wrap">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Search products…" autocomplete="off"/>
+        <div class="search-suggestions" id="searchSuggestions"></div>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <a href="/pages/login.html" class="nav-btn nav-login" id="loginBtn"><span>👤</span> Login</a>
+      <div class="nav-user hidden" id="userMenu">
+        <button class="nav-user-btn" onclick="toggleUserDropdown()">
+          <span class="user-avatar" id="userAvatar">J</span>
+          <span id="userName">John</span> ▾
+        </button>
+        <div class="user-dropdown hidden" id="userDropdown">
+          <a href="/pages/profile.html">👤 My Profile</a>
+          <a href="/pages/orders.html">📦 My Orders</a>
+          <a href="/pages/wishlist.html">❤️ Wishlist</a>
+          <hr/><button onclick="logout()">🚪 Logout</button>
+        </div>
+      </div>
+      <a href="/pages/cart.html" class="nav-cart"><span>🛒</span><span class="cart-badge" id="cartBadge">0</span></a>
+    </div>
+  </div>
+</nav>
+
+<div class="cart-page">
+  <div class="page-header">
+    <h1 class="page-title">My Cart 🛒</h1>
+  </div>
+
+  <!-- EMPTY STATE -->
+  <div id="emptyState" class="empty-cart-page" style="display:none">
+    <div class="icon">🛒</div>
+    <h2>Your cart is empty</h2>
+    <p>Add products from our store to get started</p>
+    <a href="/" class="btn-primary">Start Shopping →</a>
+  </div>
+
+  <!-- CART CONTENT -->
+  <div id="cartContent" class="cart-page-layout" style="display:none">
+    <div>
+      <div class="cart-panel">
+        <div class="cart-panel-header">
+          <h2>Cart Items (<span id="itemCount">0</span>)</h2>
+          <button onclick="clearFullCart()" style="font-size:13px;color:var(--red);font-weight:600;background:none;border:none;cursor:pointer">Clear All</button>
+        </div>
+        <div class="cart-panel-body" id="cartItemsList"></div>
+      </div>
+
+      <!-- DELIVERY INFO -->
+      <div class="panel" style="margin-top:16px;padding:20px 24px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <span style="font-size:28px">⚡</span>
+          <div>
+            <strong style="font-size:15px">Estimated Delivery: 10–20 minutes</strong>
+            <p style="font-size:13px;color:var(--text-muted);margin-top:2px">From nearest Zipp dark store</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUMMARY -->
+    <div>
+      <div class="summary-card">
+        <div class="summary-header"><h3>Order Summary</h3></div>
+        <div class="summary-body">
+          <div id="savingsBadge" class="savings-badge" style="display:none">🎉 You're saving ₹<span id="savingsAmount">0</span>!</div>
+
+          <!-- COUPON -->
+          <div id="couponSection">
+            <div class="coupon-box">
+              <input type="text" id="couponCode" placeholder="Enter coupon code" style="text-transform:uppercase"/>
+              <button class="coupon-apply-btn" onclick="applyCoupon()">Apply</button>
+            </div>
+          </div>
+          <div id="couponApplied" class="coupon-applied" style="display:none">
+            <span>🎟️ Coupon applied!</span>
+            <button onclick="removeCoupon()" style="background:none;border:none;color:var(--green);cursor:pointer;font-size:18px">✕</button>
+          </div>
+
+          <div class="summary-row"><span>Subtotal</span><span id="sumSubtotal">₹0</span></div>
+          <div class="summary-row"><span>Delivery Fee</span><span id="sumDelivery">₹40</span></div>
+          <div class="summary-row" id="taxRow"><span>GST (5%)</span><span id="sumTax">₹0</span></div>
+          <div class="summary-row" id="discountRow" style="display:none;color:var(--green)">
+            <span>Coupon Discount</span><span id="sumDiscount">-₹0</span>
+          </div>
+          <div class="summary-row total"><span>Total</span><span id="sumTotal">₹0</span></div>
+
+          <div class="delivery-info" id="freeDelMsg" style="display:none">
+            🎉 You qualify for FREE delivery!
+          </div>
+          <div class="delivery-info" id="nearFreeMsg" style="display:none">
+            🚀 Add ₹<span id="nearFreeAmt">0</span> more for FREE delivery!
+          </div>
+
+          <a href="/pages/checkout.html" class="btn-primary" id="checkoutBtn" style="display:block;text-align:center;padding:16px;font-size:16px">
+            Proceed to Checkout →
+          </a>
+          <a href="/" style="display:block;text-align:center;margin-top:12px;font-size:13px;color:var(--text-muted)">← Continue Shopping</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toastContainer"></div>
+
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/ui.js"></script>
+<script>
+  let cartState = null;
+  let couponDiscount = 0;
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    updateNavAuth();
+    if (!isLoggedIn()) {
+      document.getElementById('emptyState').style.display = 'block';
+      document.getElementById('emptyState').querySelector('p').textContent = 'Login to view your cart';
+      document.getElementById('emptyState').querySelector('a').textContent = 'Login →';
+      document.getElementById('emptyState').querySelector('a').href = '/pages/login.html';
+      return;
+    }
+    await loadPageCart();
+    initSearch();
+  });
+
+  async function loadPageCart() {
+    try {
+      const res = await CartAPI.get();
+      cartState = res;
+      renderPageCart(res);
+    } catch(e) {
+      showToast('Failed to load cart', 'error');
+    }
+  }
+
+  function renderPageCart(data) {
+    const items = data.cart?.items || [];
+    const badge = document.getElementById('cartBadge');
+    if (badge) badge.textContent = items.length;
+
+    if (!items.length) {
+      document.getElementById('emptyState').style.display = 'block';
+      document.getElementById('cartContent').style.display = 'none';
+      return;
+    }
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('cartContent').style.display = 'grid';
+    document.getElementById('itemCount').textContent = items.length;
+
+    document.getElementById('cartItemsList').innerHTML = items.map(item => {
+      const pid = item.product?._id || item.product;
+      const img = item.image || item.product?.images?.[0] || 'https://via.placeholder.com/80';
+      return `
+      <div class="cart-page-item" id="page-item-${pid}">
+        <img class="cart-page-img" src="${img}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/80'"/>
+        <div class="cart-page-info">
+          <div class="cart-page-brand">${item.product?.brand || ''}</div>
+          <div class="cart-page-name">${item.name}</div>
+          <div class="cart-page-unit">${item.product?.unit || ''}</div>
+          <div class="cart-qty-ctrl" style="margin-top:10px;width:fit-content">
+            <button onclick="pageUpdateQty('${pid}', ${item.quantity - 1})">−</button>
+            <span id="qty-${pid}">${item.quantity}</span>
+            <button onclick="pageUpdateQty('${pid}', ${item.quantity + 1})">+</button>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+          <span class="cart-page-price">₹${item.price * item.quantity}</span>
+          <span style="font-size:12px;color:var(--text-muted)">₹${item.price} each</span>
+          <button class="cart-page-remove" onclick="removeFromCart('${pid}')">🗑️</button>
+        </div>
+      </div>`;
+    }).join('');
+
+    updateSummary(data);
+  }
+
+  function updateSummary(data) {
+    const subtotal = data.subtotal || 0;
+    const deliveryFee = subtotal >= 499 ? 0 : 40;
+    const tax = Math.round(subtotal * 0.05);
+    const total = subtotal + deliveryFee + tax - couponDiscount;
+
+    document.getElementById('sumSubtotal').textContent = `₹${subtotal}`;
+    document.getElementById('sumDelivery').textContent = deliveryFee === 0 ? 'FREE' : `₹${deliveryFee}`;
+    document.getElementById('sumTax').textContent = `₹${tax}`;
+    document.getElementById('sumTotal').textContent = `₹${total}`;
+
+    // Savings
+    const savings = data.cart?.items?.reduce((s, i) => {
+      const mrp = i.product?.mrp || i.price;
+      return s + ((mrp - i.price) * i.quantity);
+    }, 0) || 0;
+    if (savings > 0) {
+      document.getElementById('savingsBadge').style.display = 'block';
+      document.getElementById('savingsAmount').textContent = savings;
+    }
+
+    // Coupon
+    if (couponDiscount > 0) {
+      document.getElementById('discountRow').style.display = 'flex';
+      document.getElementById('sumDiscount').textContent = `-₹${couponDiscount}`;
+    }
+
+    // Free delivery messages
+    if (deliveryFee === 0) {
+      document.getElementById('freeDelMsg').style.display = 'block';
+      document.getElementById('nearFreeMsg').style.display = 'none';
+    } else if (subtotal >= 300) {
+      document.getElementById('nearFreeMsg').style.display = 'block';
+      document.getElementById('nearFreeAmt').textContent = 499 - subtotal;
+      document.getElementById('freeDelMsg').style.display = 'none';
+    }
+
+    // Store summary for checkout
+    localStorage.setItem('zipp_cart_summary', JSON.stringify({ subtotal, deliveryFee, tax, couponDiscount, total }));
+  }
+
+  async function pageUpdateQty(productId, qty) {
+    if (qty < 0) return;
+    try {
+      const res = await CartAPI.update(productId, qty);
+      cartState = res;
+      if (qty === 0) {
+        document.getElementById(`page-item-${productId}`)?.remove();
+        const items = res.cart?.items || [];
+        if (!items.length) { document.getElementById('emptyState').style.display = 'block'; document.getElementById('cartContent').style.display = 'none'; }
+        showToast('Item removed', 'success');
+      } else {
+        const qtyEl = document.getElementById(`qty-${productId}`);
+        if (qtyEl) qtyEl.textContent = qty;
+        const priceEl = document.querySelector(`#page-item-${productId} .cart-page-price`);
+        const item = res.cart?.items?.find(i => (i.product?._id || i.product) === productId);
+        if (priceEl && item) priceEl.textContent = `₹${item.price * qty}`;
+      }
+      updateSummary(res);
+      const badge = document.getElementById('cartBadge');
+      if (badge) badge.textContent = res.itemCount || 0;
+    } catch(e) { showToast('Error updating cart', 'error'); }
+  }
+
+  async function removeFromCart(productId) {
+    await pageUpdateQty(productId, 0);
+  }
+
+  async function clearFullCart() {
+    if (!confirm('Clear entire cart?')) return;
+    try {
+      await CartAPI.clear();
+      document.getElementById('emptyState').style.display = 'block';
+      document.getElementById('cartContent').style.display = 'none';
+      document.getElementById('cartBadge').textContent = '0';
+      showToast('Cart cleared', 'success');
+    } catch(e) { showToast('Error', 'error'); }
+  }
+
+  async function applyCoupon() {
+    const code = document.getElementById('couponCode').value.trim();
+    if (!code) { showToast('Enter a coupon code', 'warning'); return; }
+    try {
+      const subtotal = cartState?.subtotal || 0;
+      const res = await CouponAPI.validate(code, subtotal);
+      couponDiscount = res.coupon.discount;
+      localStorage.setItem('zipp_coupon', JSON.stringify({ code, discount: couponDiscount }));
+      document.getElementById('couponSection').style.display = 'none';
+      document.getElementById('couponApplied').style.display = 'flex';
+      updateSummary(cartState);
+      showToast(`Coupon applied! Saved ₹${couponDiscount} 🎉`, 'success');
+    } catch(e) { showToast(e.message, 'error'); }
+  }
+
+  function removeCoupon() {
+    couponDiscount = 0;
+    localStorage.removeItem('zipp_coupon');
+    document.getElementById('couponSection').style.display = 'block';
+    document.getElementById('couponApplied').style.display = 'none';
+    document.getElementById('discountRow').style.display = 'none';
+    updateSummary(cartState);
+    showToast('Coupon removed', 'info');
+  }
+</script>
+</body>
+</html>

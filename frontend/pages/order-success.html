@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Order Placed! – Zipp</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    body { background: linear-gradient(135deg, #1a0935, #2d1066); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .success-card { background: white; border-radius: 28px; padding: 48px 40px; max-width: 540px; width: 100%; text-align: center; box-shadow: 0 40px 80px rgba(0,0,0,.3); animation: popIn .5s ease; }
+    @keyframes popIn { from { transform: scale(.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .success-icon { font-size: 72px; margin-bottom: 20px; animation: bounce .8s ease; }
+    @keyframes bounce { 0%,100%{transform:scale(1)} 50%{transform:scale(1.2)} }
+    .success-title { font-family: var(--font-display); font-size: 30px; font-weight: 800; color: var(--green); margin-bottom: 8px; }
+    .success-sub { color: var(--text-muted); font-size: 15px; margin-bottom: 28px; }
+    .order-number { background: var(--green-light); color: var(--green); border-radius: 12px; padding: 12px 20px; font-size: 14px; font-weight: 600; margin-bottom: 28px; display: inline-block; }
+    .eta-strip { background: var(--primary-light); border-radius: 16px; padding: 20px; margin-bottom: 28px; display: flex; align-items: center; gap: 16px; }
+    .eta-strip .eta-icon { font-size: 36px; }
+    .eta-strip h3 { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+    .eta-strip p { font-size: 13px; color: var(--text-muted); }
+    .tracking-steps { text-align: left; margin-bottom: 28px; }
+    .tracking-step { display: flex; align-items: flex-start; gap: 14px; padding: 10px 0; }
+    .step-dot { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; margin-top: 2px; }
+    .step-dot.done { background: var(--green); color: white; }
+    .step-dot.active { background: var(--primary); color: white; animation: pulse-dot 1.5s infinite; }
+    .step-dot.pending { background: var(--border); color: var(--text-muted); }
+    @keyframes pulse-dot { 0%,100%{box-shadow:0 0 0 0 rgba(108,59,255,.4)} 50%{box-shadow:0 0 0 8px rgba(108,59,255,0)} }
+    .step-info h4 { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+    .step-info p { font-size: 12px; color: var(--text-muted); }
+    .btn-group { display: flex; gap: 12px; }
+    .btn-group a { flex: 1; }
+    #toastContainer { position: fixed; top: 24px; right: 24px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
+  </style>
+</head>
+<body>
+<div class="success-card">
+  <div class="success-icon">🎉</div>
+  <h1 class="success-title">Order Placed!</h1>
+  <p class="success-sub">Your order is confirmed and being prepared right now</p>
+  <div class="order-number" id="orderNum">Loading order…</div>
+
+  <div class="eta-strip">
+    <div class="eta-icon">⚡</div>
+    <div>
+      <h3>Arriving in ~20 minutes</h3>
+      <p>Our delivery partner is on the way</p>
+    </div>
+  </div>
+
+  <div class="tracking-steps">
+    <div class="tracking-step">
+      <div class="step-dot done">✓</div>
+      <div class="step-info"><h4>Order Placed</h4><p>Just now</p></div>
+    </div>
+    <div class="tracking-step">
+      <div class="step-dot active">⚡</div>
+      <div class="step-info"><h4>Being Prepared</h4><p>~5 minutes</p></div>
+    </div>
+    <div class="tracking-step">
+      <div class="step-dot pending">🏍️</div>
+      <div class="step-info"><h4>Out for Delivery</h4><p>~10 minutes</p></div>
+    </div>
+    <div class="tracking-step">
+      <div class="step-dot pending">🏠</div>
+      <div class="step-info"><h4>Delivered</h4><p>~20 minutes</p></div>
+    </div>
+  </div>
+
+  <div class="btn-group">
+    <a href="/pages/orders.html" class="btn-primary">📦 Track Order</a>
+    <a href="/" class="btn-outline">🛍️ Shop More</a>
+  </div>
+</div>
+<div id="toastContainer"></div>
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const params = new URLSearchParams(window.location.search);
+    const orderId = params.get('id');
+    if (orderId) {
+      try {
+        const res = await OrderAPI.getById(orderId);
+        document.getElementById('orderNum').textContent = `Order #${res.order.orderNumber}`;
+      } catch(e) {
+        document.getElementById('orderNum').textContent = 'Order confirmed!';
+      }
+    }
+  });
+</script>
+</body>
+</html>

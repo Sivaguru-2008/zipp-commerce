@@ -1,0 +1,13 @@
+{
+  "name": "zipp-commerce",
+  "version": "1.0.0",
+  "description": "Zipp Commerce - Ultra-modern Quick Commerce Platform",
+  "scripts": {
+    "install": "cd backend && npm install",
+    "dev": "cd backend && npm run dev",
+    "start": "cd backend && npm start",
+    "seed": "cd backend && npm run seed"
+  },
+  "keywords": ["ecommerce", "quick-commerce", "nodejs", "mongodb"],
+  "author": "Zipp Commerce"
+}
