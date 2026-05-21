@@ -1,7 +1,24 @@
 const express = require('express');
 const router = express.Router();
+const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 const { protect, adminOnly } = require('../middleware/auth');
+
+function validate(req, res) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    res.status(422).json({ success: false, errors: errors.array() });
+    return false;
+  }
+  return true;
+}
+
+const addressValidators = [
+  body('fullName').trim().notEmpty().withMessage('Full name is required'),
+  body('phone').isMobilePhone().withMessage('Valid phone number is required'),
+  body('addressLine1').trim().notEmpty().withMessage('Address line 1 is required'),
+  body('pincode').trim().isPostalCode('IN').withMessage('Valid 6-digit pincode is required')
+];
 
 // GET /api/users/profile
 router.get('/profile', protect, async (req, res) => {
@@ -29,7 +46,8 @@ router.put('/profile', protect, async (req, res) => {
 });
 
 // POST /api/users/addresses
-router.post('/addresses', protect, async (req, res) => {
+router.post('/addresses', protect, ...addressValidators, async (req, res) => {
+  if (!validate(req, res)) return;
   try {
     const user = await User.findById(req.user._id);
     const newAddress = req.body;
@@ -46,7 +64,8 @@ router.post('/addresses', protect, async (req, res) => {
 });
 
 // PUT /api/users/addresses/:id
-router.put('/addresses/:id', protect, async (req, res) => {
+router.put('/addresses/:id', protect, ...addressValidators, async (req, res) => {
+  if (!validate(req, res)) return;
   try {
     const user = await User.findById(req.user._id);
     const addr = user.addresses.id(req.params.id);

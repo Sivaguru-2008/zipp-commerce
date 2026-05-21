@@ -1,8 +1,18 @@
 const express = require('express');
 const router = express.Router();
+const { body, validationResult } = require('express-validator');
 const { protect, adminOnly } = require('../middleware/auth');
 const { Order, Cart } = require('../models/index');
 const Product = require('../models/Product');
+
+function validate(req, res) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    res.status(422).json({ success: false, errors: errors.array() });
+    return false;
+  }
+  return true;
+}
 
 // GET /api/orders - user orders (paginated)
 router.get('/', protect, async (req, res) => {
@@ -35,7 +45,15 @@ router.get('/:id', protect, async (req, res) => {
 });
 
 // POST /api/orders - place order
-router.post('/', protect, async (req, res) => {
+router.post('/',
+  protect,
+  body('deliveryAddress.fullName').trim().notEmpty().withMessage('Delivery full name is required'),
+  body('deliveryAddress.phone').isMobilePhone().withMessage('Valid delivery phone number is required'),
+  body('deliveryAddress.addressLine1').trim().notEmpty().withMessage('Address line 1 is required'),
+  body('deliveryAddress.pincode').trim().isPostalCode('IN').withMessage('Valid 6-digit pincode is required'),
+  body('paymentMethod').optional().isIn(['cod', 'razorpay', 'wallet']).withMessage('Invalid payment method'),
+  async (req, res) => {
+  if (!validate(req, res)) return;
   try {
     const { deliveryAddress, paymentMethod = 'cod', deliveryInstructions } = req.body;
 
