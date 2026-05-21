@@ -45,7 +45,8 @@ const productSchema = new mongoose.Schema({
 
 productSchema.pre('save', function(next) {
   if (!this.slug) {
-    this.slug = this.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now();
+    const base = this.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    this.slug = base + '-' + Date.now().toString(36);
   }
   if (this.mrp > 0) {
     this.discount = Math.round(((this.mrp - this.price) / this.mrp) * 100);

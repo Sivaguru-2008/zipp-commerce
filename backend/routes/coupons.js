@@ -22,7 +22,7 @@ router.post('/validate', protect, async (req, res) => {
     } else if (coupon.type === 'fixed') {
       discount = coupon.value;
     } else if (coupon.type === 'free_delivery') {
-      discount = 40;
+      discount = coupon.value;
     }
 
     res.json({ success: true, coupon: { code: coupon.code, type: coupon.type, value: coupon.value, discount, description: coupon.description } });
