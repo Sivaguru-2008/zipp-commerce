@@ -3,21 +3,7 @@
    ============================================= */
 
 // ── Toast Notifications ──────────────────────
-function showToast(message, type = 'info', duration = 3000) {
-  const container = document.getElementById('toastContainer');
-  if (!container) return;
-
-  const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
-  const toast = document.createElement('div');
-  toast.className = `toast ${type}`;
-  toast.innerHTML = `<span>${icons[type] || icons.info}</span><span>${message}</span>`;
-  container.appendChild(toast);
-
-  setTimeout(() => {
-    toast.style.animation = 'slideOut .3s ease forwards';
-    setTimeout(() => toast.remove(), 300);
-  }, duration);
-}
+// showToast() now lives in /js/toast.js (loaded before this file on every page).
 
 // ── Skeleton Loader ───────────────────────────
 function skeletonGrid(count = 6, height = '280px') {

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>My Profile – Zipp</title>
+  <title>My Profile â€“ Zipp</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/main.css">
   <style>
@@ -47,22 +47,22 @@
 <body>
 <nav class="navbar">
   <div class="nav-inner">
-    <a href="/" class="nav-logo"><span class="logo-icon">⚡</span><span class="logo-text">Zipp</span></a>
+    <a href="/" class="nav-logo"><span class="logo-icon">âš¡</span><span class="logo-text">Zipp</span></a>
     <div class="nav-actions">
-      <a href="/pages/login.html" class="nav-btn nav-login" id="loginBtn"><span>👤</span> Login</a>
+      <a href="/pages/login.html" class="nav-btn nav-login" id="loginBtn"><span>ðŸ‘¤</span> Login</a>
       <div class="nav-user hidden" id="userMenu">
         <button class="nav-user-btn" onclick="toggleUserDropdown()">
           <span class="user-avatar" id="userAvatar">J</span>
-          <span id="userName">John</span> ▾
+          <span id="userName">John</span> â–¾
         </button>
         <div class="user-dropdown hidden" id="userDropdown">
-          <a href="/pages/profile.html">👤 My Profile</a>
-          <a href="/pages/orders.html">📦 My Orders</a>
-          <a href="/pages/wishlist.html">❤️ Wishlist</a>
-          <hr/><button onclick="logout()">🚪 Logout</button>
+          <a href="/pages/profile.html">ðŸ‘¤ My Profile</a>
+          <a href="/pages/orders.html">ðŸ“¦ My Orders</a>
+          <a href="/pages/wishlist.html">â¤ï¸ Wishlist</a>
+          <hr/><button onclick="logout()">ðŸšª Logout</button>
         </div>
       </div>
-      <a href="/pages/cart.html" class="nav-cart"><span>🛒</span><span class="cart-badge" id="cartBadge">0</span></a>
+      <a href="/pages/cart.html" class="nav-cart"><span>ðŸ›’</span><span class="cart-badge" id="cartBadge">0</span></a>
     </div>
   </div>
 </nav>
@@ -73,17 +73,17 @@
     <div class="profile-card">
       <div class="profile-avatar-section">
         <div class="avatar-circle" id="avatarCircle">J</div>
-        <div class="avatar-name" id="avatarName">Loading…</div>
+        <div class="avatar-name" id="avatarName">Loadingâ€¦</div>
         <div class="avatar-email" id="avatarEmail"></div>
       </div>
       <div class="nav-menu">
-        <button class="nav-menu-item active" onclick="switchSection('overview', this)"><span>📊</span> Overview</button>
-        <button class="nav-menu-item" onclick="switchSection('personal', this)"><span>👤</span> Personal Info</button>
-        <button class="nav-menu-item" onclick="switchSection('addresses', this)"><span>📍</span> My Addresses</button>
-        <button class="nav-menu-item" onclick="switchSection('security', this)"><span>🔒</span> Security</button>
-        <button class="nav-menu-item" onclick="window.location.href='/pages/orders.html'"><span>📦</span> My Orders</button>
-        <button class="nav-menu-item" onclick="window.location.href='/pages/wishlist.html'"><span>❤️</span> Wishlist</button>
-        <button class="nav-menu-item" onclick="logout()" style="color:var(--red)"><span>🚪</span> Logout</button>
+        <button class="nav-menu-item active" onclick="switchSection('overview', this)"><span>ðŸ“Š</span> Overview</button>
+        <button class="nav-menu-item" onclick="switchSection('personal', this)"><span>ðŸ‘¤</span> Personal Info</button>
+        <button class="nav-menu-item" onclick="switchSection('addresses', this)"><span>ðŸ“</span> My Addresses</button>
+        <button class="nav-menu-item" onclick="switchSection('security', this)"><span>ðŸ”’</span> Security</button>
+        <button class="nav-menu-item" onclick="window.location.href='/pages/orders.html'"><span>ðŸ“¦</span> My Orders</button>
+        <button class="nav-menu-item" onclick="window.location.href='/pages/wishlist.html'"><span>â¤ï¸</span> Wishlist</button>
+        <button class="nav-menu-item" onclick="logout()" style="color:var(--red)"><span>ðŸšª</span> Logout</button>
       </div>
     </div>
   </div>
@@ -93,7 +93,7 @@
     <!-- OVERVIEW -->
     <div class="section-panel active" id="panel-overview">
       <div class="panel">
-        <div class="panel-title">👋 Account Overview</div>
+        <div class="panel-title">ðŸ‘‹ Account Overview</div>
         <div class="panel-body">
           <div class="stats-grid">
             <div class="stat-card"><div class="stat-value" id="statOrders">0</div><div class="stat-label">Total Orders</div></div>
@@ -101,7 +101,7 @@
             <div class="stat-card"><div class="stat-value" id="statAddresses">0</div><div class="stat-label">Saved Addresses</div></div>
           </div>
           <div style="margin-top:20px;padding:16px;background:var(--green-light);border-radius:12px;display:flex;align-items:center;gap:12px">
-            <span style="font-size:28px">⚡</span>
+            <span style="font-size:28px">âš¡</span>
             <div><strong style="font-size:15px">Zipp Member</strong><br/><span style="font-size:13px;color:var(--green)">Enjoy 10-minute delivery on all orders!</span></div>
           </div>
         </div>
@@ -111,7 +111,7 @@
     <!-- PERSONAL INFO -->
     <div class="section-panel" id="panel-personal">
       <div class="panel">
-        <div class="panel-title">👤 Personal Information</div>
+        <div class="panel-title">ðŸ‘¤ Personal Information</div>
         <div class="panel-body">
           <div class="form-row">
             <div class="form-group"><label>Full Name</label><input type="text" id="profileName" placeholder="John Doe"/></div>
@@ -126,7 +126,7 @@
     <!-- ADDRESSES -->
     <div class="section-panel" id="panel-addresses">
       <div class="panel">
-        <div class="panel-title">📍 My Addresses</div>
+        <div class="panel-title">ðŸ“ My Addresses</div>
         <div class="panel-body">
           <div id="addressesList"></div>
           <div style="margin-top:16px">
@@ -148,7 +148,7 @@
                 <div class="form-group"><label>State *</label><input type="text" id="nAddrState"/></div>
                 <div class="form-group"><label>Label</label>
                   <select id="nAddrLabel" style="padding:12px;border:1.5px solid var(--border);border-radius:12px;font-family:var(--font-body);width:100%;outline:none">
-                    <option value="Home">🏠 Home</option><option value="Work">💼 Work</option><option value="Other">📍 Other</option>
+                    <option value="Home">ðŸ  Home</option><option value="Work">ðŸ’¼ Work</option><option value="Other">ðŸ“ Other</option>
                   </select>
                 </div>
               </div>
@@ -162,7 +162,7 @@
     <!-- SECURITY -->
     <div class="section-panel" id="panel-security">
       <div class="panel">
-        <div class="panel-title">🔒 Change Password</div>
+        <div class="panel-title">ðŸ”’ Change Password</div>
         <div class="panel-body">
           <div class="form-group"><label>Current Password</label><input type="password" id="curPass" placeholder="Current password"/></div>
           <div class="form-group"><label>New Password</label><input type="password" id="newPass" placeholder="New password (min 6 chars)"/></div>
@@ -176,6 +176,7 @@
 
 <div id="toastContainer"></div>
 <script src="/js/api.js"></script>
+<script src="/js/toast.js"></script>
 <script src="/js/auth.js"></script>
 <script src="/js/ui.js"></script>
 <script>
@@ -223,7 +224,7 @@
     try {
       const res = await UserAPI.updateProfile({ name, phone });
       const u = getUser(); u.name = res.user.name; setAuth(getToken(), u);
-      showToast('Profile updated! ✅', 'success');
+      showToast('Profile updated! âœ…', 'success');
       document.getElementById('avatarCircle').textContent = name.charAt(0).toUpperCase();
       document.getElementById('avatarName').textContent = name;
     } catch(e) { showToast(e.message, 'error'); }
@@ -238,7 +239,7 @@
     if (nw.length < 6) { showToast('Min 6 characters', 'warning'); return; }
     try {
       await AuthAPI.changePassword(cur, nw);
-      showToast('Password changed! 🔒', 'success');
+      showToast('Password changed! ðŸ”’', 'success');
       document.getElementById('curPass').value = '';
       document.getElementById('newPass').value = '';
       document.getElementById('confPass').value = '';
@@ -250,14 +251,14 @@
     if (!addresses.length) { list.innerHTML = '<p style="color:var(--text-muted)">No saved addresses</p>'; return; }
     list.innerHTML = addresses.map((addr, i) => `
       <div class="address-item ${addr.isDefault ? 'default' : ''}">
-        <div class="address-item-label">${addr.label || 'Home'} ${addr.isDefault ? '✅ Default' : ''}</div>
+        <div class="address-item-label">${addr.label || 'Home'} ${addr.isDefault ? 'âœ… Default' : ''}</div>
         <div class="address-item-name">${addr.fullName || userProfile?.name}</div>
         <div class="address-item-text">${addr.addressLine1}${addr.addressLine2 ? ', ' + addr.addressLine2 : ''}</div>
-        <div class="address-item-text">${addr.city} – ${addr.pincode}, ${addr.state}</div>
-        <div class="address-item-text">📞 ${addr.phone || ''}</div>
+        <div class="address-item-text">${addr.city} â€“ ${addr.pincode}, ${addr.state}</div>
+        <div class="address-item-text">ðŸ“ž ${addr.phone || ''}</div>
         <div class="address-item-actions">
           ${!addr.isDefault ? `<button class="addr-action-btn addr-def-btn" onclick="setDefault('${addr._id}')">Set Default</button>` : ''}
-          <button class="addr-action-btn addr-del-btn" onclick="deleteAddress('${addr._id}')">🗑️</button>
+          <button class="addr-action-btn addr-del-btn" onclick="deleteAddress('${addr._id}')">ðŸ—‘ï¸</button>
         </div>
       </div>`).join('');
   }
@@ -287,7 +288,7 @@
       document.getElementById('statAddresses').textContent = (userProfile.addresses || []).length;
       document.getElementById('newAddrForm').style.display = 'none';
       newAddrFormOpen = false;
-      showToast('Address saved! ✅', 'success');
+      showToast('Address saved! âœ…', 'success');
     } catch(e) { showToast(e.message, 'error'); }
   }
 
@@ -307,7 +308,7 @@
       const res = await UserAPI.updateAddress(id, { isDefault: true });
       userProfile = res.user;
       renderAddressList(userProfile.addresses || []);
-      showToast('Default address updated ✅', 'success');
+      showToast('Default address updated âœ…', 'success');
     } catch(e) { showToast(e.message, 'error'); }
   }
 </script>

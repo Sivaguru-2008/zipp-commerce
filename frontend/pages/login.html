@@ -93,6 +93,7 @@
 <div id="toastContainer"></div>
 
 <script src="/js/api.js"></script>
+<script src="/js/toast.js"></script>
 <script src="/js/auth.js"></script>
 <script>
   function switchTab(tab) {
@@ -108,17 +109,23 @@
     const password = document.getElementById('loginPassword').value;
     if (!email || !password) { showToast('Please fill all fields', 'warning'); return; }
     const btn = document.getElementById('loginBtn');
+    const originalLabel = 'Login to Zipp →';
     btn.textContent = 'Logging in…'; btn.disabled = true;
+    let navigating = false;
     try {
       const res = await AuthAPI.login(email, password);
       setAuth(res.token, res.user);
       showToast('Welcome back! 🎉', 'success');
+      navigating = true;
       setTimeout(() => {
         window.location.href = res.user.role === 'admin' ? '/admin.html' : '/';
       }, 800);
     } catch (e) {
+      console.error('Login failed:', e);
       showToast(e.message || 'Login failed', 'error');
-      btn.textContent = 'Login to Zipp →'; btn.disabled = false;
+    } finally {
+      // Always re-enable button unless we're navigating away on success
+      if (!navigating) { btn.textContent = originalLabel; btn.disabled = false; }
     }
   }
 
@@ -130,15 +137,20 @@
     if (!name || !email || !password) { showToast('Please fill all required fields', 'warning'); return; }
     if (password.length < 6) { showToast('Password must be at least 6 characters', 'warning'); return; }
     const btn = document.getElementById('registerBtn');
+    const originalLabel = 'Create Account →';
     btn.textContent = 'Creating account…'; btn.disabled = true;
+    let navigating = false;
     try {
       const res = await AuthAPI.register(name, email, password, phone);
       setAuth(res.token, res.user);
       showToast('Account created! Welcome to Zipp 🎉', 'success');
+      navigating = true;
       setTimeout(() => { window.location.href = '/'; }, 800);
     } catch (e) {
+      console.error('Registration failed:', e);
       showToast(e.message || 'Registration failed', 'error');
-      btn.textContent = 'Create Account →'; btn.disabled = false;
+    } finally {
+      if (!navigating) { btn.textContent = originalLabel; btn.disabled = false; }
     }
   }
 

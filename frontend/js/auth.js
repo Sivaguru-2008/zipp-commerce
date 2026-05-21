@@ -1,3 +1,10 @@
+// Defensive fallback: if /js/toast.js failed to load, never crash callers.
+if (typeof window.showToast !== 'function') {
+  window.showToast = function (message, _type) {
+    try { alert(String(message == null ? '' : message)); } catch (_) {}
+  };
+}
+
 // Auth state management
 let currentUser = null;
 

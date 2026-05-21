@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Cart – Zipp</title>
+  <title>Cart â€“ Zipp</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/main.css">
   <style>
@@ -54,44 +54,44 @@
 <body>
 <nav class="navbar">
   <div class="nav-inner">
-    <a href="/" class="nav-logo"><span class="logo-icon">⚡</span><span class="logo-text">Zipp</span></a>
+    <a href="/" class="nav-logo"><span class="logo-icon">âš¡</span><span class="logo-text">Zipp</span></a>
     <div class="nav-search-wrap">
       <div class="search-box">
-        <span class="search-icon">🔍</span>
-        <input type="text" id="searchInput" placeholder="Search products…" autocomplete="off"/>
+        <span class="search-icon">ðŸ”</span>
+        <input type="text" id="searchInput" placeholder="Search productsâ€¦" autocomplete="off"/>
         <div class="search-suggestions" id="searchSuggestions"></div>
       </div>
     </div>
     <div class="nav-actions">
-      <a href="/pages/login.html" class="nav-btn nav-login" id="loginBtn"><span>👤</span> Login</a>
+      <a href="/pages/login.html" class="nav-btn nav-login" id="loginBtn"><span>ðŸ‘¤</span> Login</a>
       <div class="nav-user hidden" id="userMenu">
         <button class="nav-user-btn" onclick="toggleUserDropdown()">
           <span class="user-avatar" id="userAvatar">J</span>
-          <span id="userName">John</span> ▾
+          <span id="userName">John</span> â–¾
         </button>
         <div class="user-dropdown hidden" id="userDropdown">
-          <a href="/pages/profile.html">👤 My Profile</a>
-          <a href="/pages/orders.html">📦 My Orders</a>
-          <a href="/pages/wishlist.html">❤️ Wishlist</a>
-          <hr/><button onclick="logout()">🚪 Logout</button>
+          <a href="/pages/profile.html">ðŸ‘¤ My Profile</a>
+          <a href="/pages/orders.html">ðŸ“¦ My Orders</a>
+          <a href="/pages/wishlist.html">â¤ï¸ Wishlist</a>
+          <hr/><button onclick="logout()">ðŸšª Logout</button>
         </div>
       </div>
-      <a href="/pages/cart.html" class="nav-cart"><span>🛒</span><span class="cart-badge" id="cartBadge">0</span></a>
+      <a href="/pages/cart.html" class="nav-cart"><span>ðŸ›’</span><span class="cart-badge" id="cartBadge">0</span></a>
     </div>
   </div>
 </nav>
 
 <div class="cart-page">
   <div class="page-header">
-    <h1 class="page-title">My Cart 🛒</h1>
+    <h1 class="page-title">My Cart ðŸ›’</h1>
   </div>
 
   <!-- EMPTY STATE -->
   <div id="emptyState" class="empty-cart-page" style="display:none">
-    <div class="icon">🛒</div>
+    <div class="icon">ðŸ›’</div>
     <h2>Your cart is empty</h2>
     <p>Add products from our store to get started</p>
-    <a href="/" class="btn-primary">Start Shopping →</a>
+    <a href="/" class="btn-primary">Start Shopping â†’</a>
   </div>
 
   <!-- CART CONTENT -->
@@ -108,9 +108,9 @@
       <!-- DELIVERY INFO -->
       <div class="panel" style="margin-top:16px;padding:20px 24px">
         <div style="display:flex;align-items:center;gap:12px">
-          <span style="font-size:28px">⚡</span>
+          <span style="font-size:28px">âš¡</span>
           <div>
-            <strong style="font-size:15px">Estimated Delivery: 10–20 minutes</strong>
+            <strong style="font-size:15px">Estimated Delivery: 10â€“20 minutes</strong>
             <p style="font-size:13px;color:var(--text-muted);margin-top:2px">From nearest Zipp dark store</p>
           </div>
         </div>
@@ -122,7 +122,7 @@
       <div class="summary-card">
         <div class="summary-header"><h3>Order Summary</h3></div>
         <div class="summary-body">
-          <div id="savingsBadge" class="savings-badge" style="display:none">🎉 You're saving ₹<span id="savingsAmount">0</span>!</div>
+          <div id="savingsBadge" class="savings-badge" style="display:none">ðŸŽ‰ You're saving â‚¹<span id="savingsAmount">0</span>!</div>
 
           <!-- COUPON -->
           <div id="couponSection">
@@ -132,29 +132,29 @@
             </div>
           </div>
           <div id="couponApplied" class="coupon-applied" style="display:none">
-            <span>🎟️ Coupon applied!</span>
-            <button onclick="removeCoupon()" style="background:none;border:none;color:var(--green);cursor:pointer;font-size:18px">✕</button>
+            <span>ðŸŽŸï¸ Coupon applied!</span>
+            <button onclick="removeCoupon()" style="background:none;border:none;color:var(--green);cursor:pointer;font-size:18px">âœ•</button>
           </div>
 
-          <div class="summary-row"><span>Subtotal</span><span id="sumSubtotal">₹0</span></div>
-          <div class="summary-row"><span>Delivery Fee</span><span id="sumDelivery">₹40</span></div>
-          <div class="summary-row" id="taxRow"><span>GST (5%)</span><span id="sumTax">₹0</span></div>
+          <div class="summary-row"><span>Subtotal</span><span id="sumSubtotal">â‚¹0</span></div>
+          <div class="summary-row"><span>Delivery Fee</span><span id="sumDelivery">â‚¹40</span></div>
+          <div class="summary-row" id="taxRow"><span>GST (5%)</span><span id="sumTax">â‚¹0</span></div>
           <div class="summary-row" id="discountRow" style="display:none;color:var(--green)">
-            <span>Coupon Discount</span><span id="sumDiscount">-₹0</span>
+            <span>Coupon Discount</span><span id="sumDiscount">-â‚¹0</span>
           </div>
-          <div class="summary-row total"><span>Total</span><span id="sumTotal">₹0</span></div>
+          <div class="summary-row total"><span>Total</span><span id="sumTotal">â‚¹0</span></div>
 
           <div class="delivery-info" id="freeDelMsg" style="display:none">
-            🎉 You qualify for FREE delivery!
+            ðŸŽ‰ You qualify for FREE delivery!
           </div>
           <div class="delivery-info" id="nearFreeMsg" style="display:none">
-            🚀 Add ₹<span id="nearFreeAmt">0</span> more for FREE delivery!
+            ðŸš€ Add â‚¹<span id="nearFreeAmt">0</span> more for FREE delivery!
           </div>
 
           <a href="/pages/checkout.html" class="btn-primary" id="checkoutBtn" style="display:block;text-align:center;padding:16px;font-size:16px">
-            Proceed to Checkout →
+            Proceed to Checkout â†’
           </a>
-          <a href="/" style="display:block;text-align:center;margin-top:12px;font-size:13px;color:var(--text-muted)">← Continue Shopping</a>
+          <a href="/" style="display:block;text-align:center;margin-top:12px;font-size:13px;color:var(--text-muted)">â† Continue Shopping</a>
         </div>
       </div>
     </div>
@@ -164,6 +164,7 @@
 <div id="toastContainer"></div>
 
 <script src="/js/api.js"></script>
+<script src="/js/toast.js"></script>
 <script src="/js/auth.js"></script>
 <script src="/js/ui.js"></script>
 <script>
@@ -175,7 +176,7 @@
     if (!isLoggedIn()) {
       document.getElementById('emptyState').style.display = 'block';
       document.getElementById('emptyState').querySelector('p').textContent = 'Login to view your cart';
-      document.getElementById('emptyState').querySelector('a').textContent = 'Login →';
+      document.getElementById('emptyState').querySelector('a').textContent = 'Login â†’';
       document.getElementById('emptyState').querySelector('a').href = '/pages/login.html';
       return;
     }
@@ -218,15 +219,15 @@
           <div class="cart-page-name">${item.name}</div>
           <div class="cart-page-unit">${item.product?.unit || ''}</div>
           <div class="cart-qty-ctrl" style="margin-top:10px;width:fit-content">
-            <button onclick="pageUpdateQty('${pid}', ${item.quantity - 1})">−</button>
+            <button onclick="pageUpdateQty('${pid}', ${item.quantity - 1})">âˆ’</button>
             <span id="qty-${pid}">${item.quantity}</span>
             <button onclick="pageUpdateQty('${pid}', ${item.quantity + 1})">+</button>
           </div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
-          <span class="cart-page-price">₹${item.price * item.quantity}</span>
-          <span style="font-size:12px;color:var(--text-muted)">₹${item.price} each</span>
-          <button class="cart-page-remove" onclick="removeFromCart('${pid}')">🗑️</button>
+          <span class="cart-page-price">â‚¹${item.price * item.quantity}</span>
+          <span style="font-size:12px;color:var(--text-muted)">â‚¹${item.price} each</span>
+          <button class="cart-page-remove" onclick="removeFromCart('${pid}')">ðŸ—‘ï¸</button>
         </div>
       </div>`;
     }).join('');
@@ -240,10 +241,10 @@
     const tax = Math.round(subtotal * 0.05);
     const total = subtotal + deliveryFee + tax - couponDiscount;
 
-    document.getElementById('sumSubtotal').textContent = `₹${subtotal}`;
-    document.getElementById('sumDelivery').textContent = deliveryFee === 0 ? 'FREE' : `₹${deliveryFee}`;
-    document.getElementById('sumTax').textContent = `₹${tax}`;
-    document.getElementById('sumTotal').textContent = `₹${total}`;
+    document.getElementById('sumSubtotal').textContent = `â‚¹${subtotal}`;
+    document.getElementById('sumDelivery').textContent = deliveryFee === 0 ? 'FREE' : `â‚¹${deliveryFee}`;
+    document.getElementById('sumTax').textContent = `â‚¹${tax}`;
+    document.getElementById('sumTotal').textContent = `â‚¹${total}`;
 
     // Savings
     const savings = data.cart?.items?.reduce((s, i) => {
@@ -258,7 +259,7 @@
     // Coupon
     if (couponDiscount > 0) {
       document.getElementById('discountRow').style.display = 'flex';
-      document.getElementById('sumDiscount').textContent = `-₹${couponDiscount}`;
+      document.getElementById('sumDiscount').textContent = `-â‚¹${couponDiscount}`;
     }
 
     // Free delivery messages
@@ -290,7 +291,7 @@
         if (qtyEl) qtyEl.textContent = qty;
         const priceEl = document.querySelector(`#page-item-${productId} .cart-page-price`);
         const item = res.cart?.items?.find(i => (i.product?._id || i.product) === productId);
-        if (priceEl && item) priceEl.textContent = `₹${item.price * qty}`;
+        if (priceEl && item) priceEl.textContent = `â‚¹${item.price * qty}`;
       }
       updateSummary(res);
       const badge = document.getElementById('cartBadge');
@@ -324,7 +325,7 @@
       document.getElementById('couponSection').style.display = 'none';
       document.getElementById('couponApplied').style.display = 'flex';
       updateSummary(cartState);
-      showToast(`Coupon applied! Saved ₹${couponDiscount} 🎉`, 'success');
+      showToast(`Coupon applied! Saved â‚¹${couponDiscount} ðŸŽ‰`, 'success');
     } catch(e) { showToast(e.message, 'error'); }
   }
 

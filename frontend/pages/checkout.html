@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Checkout – Zipp</title>
+  <title>Checkout â€“ Zipp</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/main.css">
   <style>
@@ -57,17 +57,17 @@
 <body>
 <nav class="navbar">
   <div class="nav-inner">
-    <a href="/" class="nav-logo"><span class="logo-icon">⚡</span><span class="logo-text">Zipp</span></a>
+    <a href="/" class="nav-logo"><span class="logo-icon">âš¡</span><span class="logo-text">Zipp</span></a>
     <div style="flex:1;text-align:center">
       <div style="display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;color:var(--text-muted)">
-        <span style="color:var(--primary);font-weight:700">1 Cart</span> › 
-        <span style="color:var(--primary);font-weight:700">2 Address</span> › 
-        <span style="color:var(--text-muted)">3 Payment</span> › 
+        <span style="color:var(--primary);font-weight:700">1 Cart</span> â€º 
+        <span style="color:var(--primary);font-weight:700">2 Address</span> â€º 
+        <span style="color:var(--text-muted)">3 Payment</span> â€º 
         <span style="color:var(--text-muted)">4 Confirm</span>
       </div>
     </div>
     <div class="nav-actions">
-      <a href="/pages/cart.html" class="nav-btn" style="background:var(--bg);color:var(--text-primary)">← Cart</a>
+      <a href="/pages/cart.html" class="nav-btn" style="background:var(--bg);color:var(--text-primary)">â† Cart</a>
     </div>
   </div>
 </nav>
@@ -78,7 +78,7 @@
     <div class="checkout-step">
       <div class="step-header">
         <div class="step-number">1</div>
-        <div class="step-title">📍 Delivery Address</div>
+        <div class="step-title">ðŸ“ Delivery Address</div>
       </div>
       <div class="step-body">
         <div id="addressList"></div>
@@ -100,9 +100,9 @@
             <div class="form-group">
               <label>Label</label>
               <select id="addrLabel" style="padding:12px 16px;border:1.5px solid var(--border);border-radius:12px;font-family:var(--font-body);font-size:15px;outline:none;background:white;width:100%">
-                <option value="Home">🏠 Home</option>
-                <option value="Work">💼 Work</option>
-                <option value="Other">📍 Other</option>
+                <option value="Home">ðŸ  Home</option>
+                <option value="Work">ðŸ’¼ Work</option>
+                <option value="Other">ðŸ“ Other</option>
               </select>
             </div>
           </div>
@@ -115,12 +115,12 @@
     <div class="checkout-step">
       <div class="step-header">
         <div class="step-number">2</div>
-        <div class="step-title">💳 Payment Method</div>
+        <div class="step-title">ðŸ’³ Payment Method</div>
       </div>
       <div class="step-body">
         <div class="payment-option selected" onclick="selectPayment('cod', this)">
           <input type="radio" name="payment" value="cod" checked/>
-          <span class="payment-icon">💵</span>
+          <span class="payment-icon">ðŸ’µ</span>
           <div class="payment-info">
             <h4>Cash on Delivery</h4>
             <p>Pay when your order arrives</p>
@@ -128,7 +128,7 @@
         </div>
         <div class="payment-option" onclick="selectPayment('razorpay', this)">
           <input type="radio" name="payment" value="razorpay"/>
-          <span class="payment-icon">💳</span>
+          <span class="payment-icon">ðŸ’³</span>
           <div class="payment-info">
             <h4>Online Payment (Razorpay)</h4>
             <p>UPI, Cards, Net Banking, Wallets</p>
@@ -141,10 +141,10 @@
     <div class="checkout-step">
       <div class="step-header">
         <div class="step-number">3</div>
-        <div class="step-title">📝 Delivery Instructions</div>
+        <div class="step-title">ðŸ“ Delivery Instructions</div>
       </div>
       <div class="step-body">
-        <textarea class="instructions-input" id="deliveryInstructions" placeholder="E.g. Ring doorbell twice, leave at door, call when arrived…"></textarea>
+        <textarea class="instructions-input" id="deliveryInstructions" placeholder="E.g. Ring doorbell twice, leave at door, call when arrivedâ€¦"></textarea>
       </div>
     </div>
   </div>
@@ -157,20 +157,20 @@
         <div id="orderItemsPreview"></div>
       </div>
       <div class="sum-section">
-        <div class="sum-row"><span>Subtotal</span><span id="coSubtotal">₹0</span></div>
-        <div class="sum-row"><span>Delivery</span><span id="coDelivery">₹40</span></div>
-        <div class="sum-row"><span>Tax (5%)</span><span id="coTax">₹0</span></div>
+        <div class="sum-row"><span>Subtotal</span><span id="coSubtotal">â‚¹0</span></div>
+        <div class="sum-row"><span>Delivery</span><span id="coDelivery">â‚¹40</span></div>
+        <div class="sum-row"><span>Tax (5%)</span><span id="coTax">â‚¹0</span></div>
         <div class="sum-row" id="coDiscRow" style="display:none;color:var(--green)">
-          <span>Discount</span><span id="coDiscount">-₹0</span>
+          <span>Discount</span><span id="coDiscount">-â‚¹0</span>
         </div>
-        <div class="sum-row total"><span>Total</span><span id="coTotal">₹0</span></div>
+        <div class="sum-row total"><span>Total</span><span id="coTotal">â‚¹0</span></div>
         <div style="background:var(--green-light);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--green);font-weight:600;margin-top:14px">
-          ⚡ Estimated Delivery: 10–20 minutes
+          âš¡ Estimated Delivery: 10â€“20 minutes
         </div>
         <button class="place-order-btn" id="placeOrderBtn" onclick="placeOrder()">
-          🛒 Place Order
+          ðŸ›’ Place Order
         </button>
-        <div class="secure-badge">🔒 Secure & Encrypted Checkout</div>
+        <div class="secure-badge">ðŸ”’ Secure & Encrypted Checkout</div>
       </div>
     </div>
   </div>
@@ -179,6 +179,7 @@
 <div id="toastContainer"></div>
 
 <script src="/js/api.js"></script>
+<script src="/js/toast.js"></script>
 <script src="/js/auth.js"></script>
 <script src="/js/ui.js"></script>
 <script>
@@ -214,13 +215,13 @@
       const couponDiscount = coupon?.discount || 0;
       const total = subtotal + deliveryFee + tax - couponDiscount;
 
-      document.getElementById('coSubtotal').textContent = `₹${subtotal}`;
-      document.getElementById('coDelivery').textContent = deliveryFee === 0 ? 'FREE' : `₹${deliveryFee}`;
-      document.getElementById('coTax').textContent = `₹${tax}`;
-      document.getElementById('coTotal').textContent = `₹${total}`;
+      document.getElementById('coSubtotal').textContent = `â‚¹${subtotal}`;
+      document.getElementById('coDelivery').textContent = deliveryFee === 0 ? 'FREE' : `â‚¹${deliveryFee}`;
+      document.getElementById('coTax').textContent = `â‚¹${tax}`;
+      document.getElementById('coTotal').textContent = `â‚¹${total}`;
       if (couponDiscount > 0) {
         document.getElementById('coDiscRow').style.display = 'flex';
-        document.getElementById('coDiscount').textContent = `-₹${couponDiscount}`;
+        document.getElementById('coDiscount').textContent = `-â‚¹${couponDiscount}`;
       }
 
       document.getElementById('orderItemsPreview').innerHTML = cartItems.slice(0, 4).map(item => `
@@ -230,7 +231,7 @@
             <div class="order-item-name">${item.name}</div>
             <div class="order-item-qty">Qty: ${item.quantity}</div>
           </div>
-          <span class="order-item-price">₹${item.price * item.quantity}</span>
+          <span class="order-item-price">â‚¹${item.price * item.quantity}</span>
         </div>`).join('') + (cartItems.length > 4 ? `<p style="font-size:12px;color:var(--text-muted);text-align:center;padding:8px">+ ${cartItems.length - 4} more items</p>` : '');
 
       cartSummary = { subtotal, deliveryFee, tax, couponDiscount, total };
@@ -244,11 +245,11 @@
       <div class="address-card ${addr.isDefault ? 'selected' : ''}" onclick="selectAddr(${i})" id="addr-${i}">
         <div class="address-card-header">
           <span class="address-label">${addr.label || 'Home'}</span>
-          ${addr.isDefault ? '<span style="font-size:12px;color:var(--primary);font-weight:600">✅ Default</span>' : ''}
+          ${addr.isDefault ? '<span style="font-size:12px;color:var(--primary);font-weight:600">âœ… Default</span>' : ''}
         </div>
         <div class="address-name">${addr.fullName || profile?.name}</div>
-        <div class="address-text">${addr.addressLine1}${addr.addressLine2 ? ', ' + addr.addressLine2 : ''}, ${addr.city} – ${addr.pincode}</div>
-        <div class="address-text">📞 ${addr.phone || profile?.phone || ''}</div>
+        <div class="address-text">${addr.addressLine1}${addr.addressLine2 ? ', ' + addr.addressLine2 : ''}, ${addr.city} â€“ ${addr.pincode}</div>
+        <div class="address-text">ðŸ“ž ${addr.phone || profile?.phone || ''}</div>
       </div>`).join('');
 
     const defaultAddr = addresses.findIndex(a => a.isDefault);
@@ -288,7 +289,7 @@
       renderAddresses(profile.addresses || []);
       document.getElementById('addAddressForm').classList.remove('open');
       addressFormOpen = false;
-      showToast('Address saved! ✅', 'success');
+      showToast('Address saved! âœ…', 'success');
     } catch(e) { showToast(e.message, 'error'); }
   }
 
@@ -302,7 +303,7 @@
   async function placeOrder() {
     if (!selectedAddress) { showToast('Please select a delivery address', 'warning'); return; }
     const btn = document.getElementById('placeOrderBtn');
-    btn.disabled = true; btn.textContent = '⏳ Placing Order…';
+    btn.disabled = true; btn.textContent = 'â³ Placing Orderâ€¦';
 
     const coupon = JSON.parse(localStorage.getItem('zipp_coupon') || 'null');
     const orderData = {
@@ -320,12 +321,12 @@
         await handleRazorpay(order);
       } else {
         localStorage.removeItem('zipp_coupon');
-        showToast('Order placed! 🎉', 'success');
+        showToast('Order placed! ðŸŽ‰', 'success');
         setTimeout(() => { window.location.href = `/pages/order-success.html?id=${order._id}`; }, 800);
       }
     } catch(e) {
       showToast(e.message || 'Failed to place order', 'error');
-      btn.disabled = false; btn.textContent = '🛒 Place Order';
+      btn.disabled = false; btn.textContent = 'ðŸ›’ Place Order';
     }
   }
 
@@ -358,7 +359,7 @@
     } catch(e) {
       showToast('Payment setup failed. Try COD.', 'error');
       document.getElementById('placeOrderBtn').disabled = false;
-      document.getElementById('placeOrderBtn').textContent = '🛒 Place Order';
+      document.getElementById('placeOrderBtn').textContent = 'ðŸ›’ Place Order';
     }
   }
 </script>
