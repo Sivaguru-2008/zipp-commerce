@@ -7,8 +7,12 @@ const { protect } = require('../middleware/auth');
 // GET /api/cart
 router.get('/', protect, async (req, res) => {
   try {
-    let cart = await Cart.findOne({ user: req.user._id }).populate('items.product', 'name price mrp images stock isActive deliveryTime');
-    if (!cart) cart = await Cart.create({ user: req.user._id, items: [] });
+    // Atomic upsert avoids race condition on parallel first-GETs for a new user
+    let cart = await Cart.findOneAndUpdate(
+      { user: req.user._id },
+      { $setOnInsert: { user: req.user._id, items: [] } },
+      { upsert: true, new: true }
+    ).populate('items.product', 'name price mrp images stock isActive deliveryTime');
     // Filter out inactive products
     cart.items = cart.items.filter(item => item.product && item.product.isActive);
     const subtotal = cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);

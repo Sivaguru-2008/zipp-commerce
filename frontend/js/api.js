@@ -19,7 +19,19 @@ const api = {
     try {
       const res = await fetch(`${API_BASE}${endpoint}`, config);
       const json = await res.json();
-      if (!res.ok) throw new Error(json.message || 'Something went wrong');
+      if (!res.ok) {
+        // express-validator returns { errors: [{ msg, path, ... }] } on 422
+        const validatorMsg = Array.isArray(json.errors) && json.errors[0] && json.errors[0].msg;
+        const err = new Error(validatorMsg || json.message || 'Request failed');
+        err.status = res.status;
+        err.errors = json.errors;
+        // Auto-clear stale session on token failure
+        if (res.status === 401 && endpoint !== '/auth/login' && endpoint !== '/auth/register') {
+          localStorage.removeItem('zipp_token');
+          localStorage.removeItem('zipp_user');
+        }
+        throw err;
+      }
       return json;
     } catch (err) {
       throw err;

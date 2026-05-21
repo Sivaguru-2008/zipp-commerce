@@ -6,8 +6,11 @@ const { Wishlist } = require('../models/index');
 // GET /api/wishlist
 router.get('/', protect, async (req, res) => {
   try {
-    let wishlist = await Wishlist.findOne({ user: req.user._id }).populate('products');
-    if (!wishlist) wishlist = { products: [] };
+    const wishlist = await Wishlist.findOneAndUpdate(
+      { user: req.user._id },
+      { $setOnInsert: { user: req.user._id, products: [] } },
+      { upsert: true, new: true }
+    ).populate('products');
     res.json({ success: true, products: wishlist.products });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

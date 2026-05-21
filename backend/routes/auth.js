@@ -3,7 +3,9 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
+const { Cart, Wishlist } = require('../models/index');
 const { protect } = require('../middleware/auth');
+const logger = require('../utils/logger');
 
 const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 
@@ -31,6 +33,18 @@ router.post('/register',
         return res.status(400).json({ success: false, message: 'Email already registered' });
       }
       const user = await User.create({ name, email, password, phone });
+
+      // Pre-create empty cart and wishlist so the new user has a complete data footprint.
+      // Failures here don't break registration — cart/wishlist routes also lazy-init.
+      try {
+        await Promise.all([
+          Cart.create({ user: user._id, items: [] }),
+          Wishlist.create({ user: user._id, products: [] })
+        ]);
+      } catch (e) {
+        logger.warn({ userId: user._id, err: e.message }, 'Failed to pre-create cart/wishlist; will lazy-init');
+      }
+
       const token = generateToken(user._id);
       res.status(201).json({
         success: true,

@@ -61,9 +61,28 @@ document.addEventListener('click', (e) => {
   }
 });
 
+// Validate token + refresh user data from server. Falls back silently on network errors.
+async function restoreSession() {
+  if (!getToken()) return;
+  try {
+    const res = await AuthAPI.me();
+    if (res && res.user) {
+      // Refresh stored user (handles name/role/avatar changes since last login)
+      localStorage.setItem('zipp_user', JSON.stringify(res.user));
+      currentUser = res.user;
+    }
+  } catch (err) {
+    // api.js already cleared the token on 401; nothing more to do.
+    // For network errors keep the cached session so offline reload still works.
+  } finally {
+    updateNavAuth();
+  }
+}
+
 // Init auth state on load
 document.addEventListener('DOMContentLoaded', () => {
-  updateNavAuth();
+  updateNavAuth();      // Immediate paint from localStorage (no flicker)
+  restoreSession();     // Background validation + refresh
 });
 
 // Protected page guard
