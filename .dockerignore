@@ -1,0 +1,15 @@
+**/node_modules
+**/.env
+**/.env.*
+!**/.env.example
+**/.git
+**/.github
+**/.vscode
+**/.idea
+**/coverage
+**/uploads
+**/*.log
+**/.DS_Store
+Thumbs.db
+.claude
+HANDOFF.md

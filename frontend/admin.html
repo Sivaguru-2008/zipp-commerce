@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin â€“ Zipp Commerce</title>
+  <title>Admin – Zipp Commerce</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/main.css">
   <style>
@@ -112,23 +112,23 @@
   <!-- SIDEBAR -->
   <aside class="admin-sidebar">
     <div class="admin-logo">
-      <span style="font-size:22px">âš¡</span>
+      <span style="font-size:22px">⚡</span>
       <span class="logo-text">Zipp Admin</span>
     </div>
     <nav class="admin-nav">
       <div class="admin-nav-section">Main</div>
-      <button class="admin-nav-item active" onclick="showPanel('dashboard', this)"><span class="nav-icon">ðŸ“Š</span> Dashboard</button>
-      <button class="admin-nav-item" onclick="showPanel('orders', this)"><span class="nav-icon">ðŸ“¦</span> Orders</button>
+      <button class="admin-nav-item active" onclick="showPanel('dashboard', this)"><span class="nav-icon">📊</span> Dashboard</button>
+      <button class="admin-nav-item" onclick="showPanel('orders', this)"><span class="nav-icon">📦</span> Orders</button>
       <div class="admin-nav-section">Catalog</div>
-      <button class="admin-nav-item" onclick="showPanel('products', this)"><span class="nav-icon">ðŸ›ï¸</span> Products</button>
-      <button class="admin-nav-item" onclick="showPanel('add-product', this)"><span class="nav-icon">âž•</span> Add Product</button>
-      <button class="admin-nav-item" onclick="showPanel('inventory', this)"><span class="nav-icon">ðŸ“‹</span> Inventory</button>
+      <button class="admin-nav-item" onclick="showPanel('products', this)"><span class="nav-icon">🛍️</span> Products</button>
+      <button class="admin-nav-item" onclick="showPanel('add-product', this)"><span class="nav-icon">➕</span> Add Product</button>
+      <button class="admin-nav-item" onclick="showPanel('inventory', this)"><span class="nav-icon">📋</span> Inventory</button>
       <div class="admin-nav-section">Users</div>
-      <button class="admin-nav-item" onclick="showPanel('users', this)"><span class="nav-icon">ðŸ‘¥</span> Customers</button>
-      <button class="admin-nav-item" onclick="showPanel('coupons', this)"><span class="nav-icon">ðŸŽŸï¸</span> Coupons</button>
+      <button class="admin-nav-item" onclick="showPanel('users', this)"><span class="nav-icon">👥</span> Customers</button>
+      <button class="admin-nav-item" onclick="showPanel('coupons', this)"><span class="nav-icon">🎟️</span> Coupons</button>
       <div class="admin-nav-section">System</div>
-      <button class="admin-nav-item" onclick="window.open('/', '_blank')"><span class="nav-icon">ðŸŒ</span> View Store</button>
-      <button class="admin-nav-item" onclick="logout()" style="color:rgba(239,68,68,.8)"><span class="nav-icon">ðŸšª</span> Logout</button>
+      <button class="admin-nav-item" onclick="window.open('/', '_blank')"><span class="nav-icon">🌐</span> View Store</button>
+      <button class="admin-nav-item" onclick="logout()" style="color:rgba(239,68,68,.8)"><span class="nav-icon">🚪</span> Logout</button>
     </nav>
     <div class="admin-footer">
       <div class="admin-user-info">
@@ -144,34 +144,34 @@
       <h1 class="topbar-title" id="topbarTitle">Dashboard</h1>
       <div class="topbar-actions">
         <span style="font-size:13px;color:var(--text-muted)" id="topbarDate"></span>
-        <button class="topbar-btn" style="background:var(--primary-light);color:var(--primary)" onclick="refreshCurrentPanel()">ðŸ”„ Refresh</button>
+        <button class="topbar-btn" style="background:var(--primary-light);color:var(--primary)" onclick="refreshCurrentPanel()">🔄 Refresh</button>
       </div>
     </div>
 
     <div class="admin-content">
 
-      <!-- â•â•â•â•â•â• DASHBOARD â•â•â•â•â•â• -->
+      <!-- ══════ DASHBOARD ══════ -->
       <div class="admin-panel active" id="panel-dashboard">
         <div class="stats-row" id="statsRow">
-          <div class="stat-card"><div class="stat-icon purple">ðŸ’°</div><div class="stat-info"><div class="stat-value" id="statRevenue">â‚¹0</div><div class="stat-label">Total Revenue</div><span class="stat-change up" id="todayRevLabel">â‚¹0 today</span></div></div>
-          <div class="stat-card"><div class="stat-icon green">ðŸ“¦</div><div class="stat-info"><div class="stat-value" id="statTotalOrders">0</div><div class="stat-label">Total Orders</div><span class="stat-change up" id="todayOrdLabel">0 today</span></div></div>
-          <div class="stat-card"><div class="stat-icon orange">ðŸ‘¥</div><div class="stat-info"><div class="stat-value" id="statUsers">0</div><div class="stat-label">Customers</div><span class="stat-change up">Registered</span></div></div>
-          <div class="stat-card"><div class="stat-icon blue">ðŸ›ï¸</div><div class="stat-info"><div class="stat-value" id="statProducts">0</div><div class="stat-label">Products</div><span class="stat-change up">Active</span></div></div>
+          <div class="stat-card"><div class="stat-icon purple">💰</div><div class="stat-info"><div class="stat-value" id="statRevenue">₹0</div><div class="stat-label">Total Revenue</div><span class="stat-change up" id="todayRevLabel">₹0 today</span></div></div>
+          <div class="stat-card"><div class="stat-icon green">📦</div><div class="stat-info"><div class="stat-value" id="statTotalOrders">0</div><div class="stat-label">Total Orders</div><span class="stat-change up" id="todayOrdLabel">0 today</span></div></div>
+          <div class="stat-card"><div class="stat-icon orange">👥</div><div class="stat-info"><div class="stat-value" id="statUsers">0</div><div class="stat-label">Customers</div><span class="stat-change up">Registered</span></div></div>
+          <div class="stat-card"><div class="stat-icon blue">🛍️</div><div class="stat-info"><div class="stat-value" id="statProducts">0</div><div class="stat-label">Products</div><span class="stat-change up">Active</span></div></div>
         </div>
 
         <div class="charts-row">
           <div class="chart-card">
-            <div class="chart-title">ðŸ“ˆ Orders Last 7 Days</div>
+            <div class="chart-title">📈 Orders Last 7 Days</div>
             <div class="bar-chart" id="ordersChart"></div>
           </div>
           <div class="chart-card">
-            <div class="chart-title">ðŸ“Š Orders by Status</div>
+            <div class="chart-title">📊 Orders by Status</div>
             <div id="statusChart"></div>
           </div>
         </div>
 
         <div class="admin-table-wrap">
-          <div class="table-header"><span class="table-title">ðŸ• Recent Orders</span><a href="#" onclick="showPanel('orders', document.querySelector('[data-panel=orders]'))" style="font-size:13px;color:var(--primary);font-weight:600">View All â†’</a></div>
+          <div class="table-header"><span class="table-title">🕐 Recent Orders</span><a href="#" onclick="showPanel('orders', document.querySelector('[data-panel=orders]'))" style="font-size:13px;color:var(--primary);font-weight:600">View All →</a></div>
           <table>
             <thead><tr><th>Order #</th><th>Customer</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
             <tbody id="recentOrdersTable"></tbody>
@@ -179,11 +179,11 @@
         </div>
       </div>
 
-      <!-- â•â•â•â•â•â• ORDERS â•â•â•â•â•â• -->
+      <!-- ══════ ORDERS ══════ -->
       <div class="admin-panel" id="panel-orders">
         <div class="admin-table-wrap">
           <div class="table-header">
-            <span class="table-title">ðŸ“¦ All Orders</span>
+            <span class="table-title">📦 All Orders</span>
             <div style="display:flex;gap:10px;flex-wrap:wrap">
               <select id="orderStatusFilter" class="table-search" style="width:160px" onchange="loadAdminOrders()">
                 <option value="">All Statuses</option>
@@ -194,7 +194,7 @@
                 <option value="delivered">Delivered</option>
                 <option value="cancelled">Cancelled</option>
               </select>
-              <input type="text" class="table-search" placeholder="Search order #â€¦" id="orderSearch" oninput="loadAdminOrders()"/>
+              <input type="text" class="table-search" placeholder="Search order #…" id="orderSearch" oninput="loadAdminOrders()"/>
             </div>
           </div>
           <table>
@@ -204,13 +204,13 @@
         </div>
       </div>
 
-      <!-- â•â•â•â•â•â• PRODUCTS â•â•â•â•â•â• -->
+      <!-- ══════ PRODUCTS ══════ -->
       <div class="admin-panel" id="panel-products">
         <div class="admin-table-wrap">
           <div class="table-header">
-            <span class="table-title">ðŸ›ï¸ All Products</span>
+            <span class="table-title">🛍️ All Products</span>
             <div style="display:flex;gap:10px">
-              <input type="text" class="table-search" placeholder="Search productsâ€¦" id="productSearch" oninput="loadAdminProducts()"/>
+              <input type="text" class="table-search" placeholder="Search products…" id="productSearch" oninput="loadAdminProducts()"/>
               <button class="action-btn btn-edit" onclick="showPanel('add-product', document.querySelectorAll('.admin-nav-item')[3])">+ Add Product</button>
             </div>
           </div>
@@ -221,16 +221,16 @@
         </div>
       </div>
 
-      <!-- â•â•â•â•â•â• ADD PRODUCT â•â•â•â•â•â• -->
+      <!-- ══════ ADD PRODUCT ══════ -->
       <div class="admin-panel" id="panel-add-product">
         <div class="product-form">
-          <h2 style="font-family:var(--font-display);font-size:20px;font-weight:700;margin-bottom:24px">âž• Add New Product</h2>
+          <h2 style="font-family:var(--font-display);font-size:20px;font-weight:700;margin-bottom:24px">➕ Add New Product</h2>
           <div class="form-section-title">Basic Information</div>
           <div class="form-grid">
             <div class="form-group"><label>Product Name *</label><input type="text" id="pName" placeholder="e.g. Amul Gold Milk"/></div>
             <div class="form-group"><label>Brand *</label><input type="text" id="pBrand" placeholder="e.g. Amul"/></div>
           </div>
-          <div class="form-group"><label>Description</label><textarea id="pDesc" placeholder="Product descriptionâ€¦" style="width:100%;padding:12px;border:1.5px solid var(--border);border-radius:12px;font-family:var(--font-body);min-height:80px;outline:none;resize:vertical"></textarea></div>
+          <div class="form-group"><label>Description</label><textarea id="pDesc" placeholder="Product description…" style="width:100%;padding:12px;border:1.5px solid var(--border);border-radius:12px;font-family:var(--font-body);min-height:80px;outline:none;resize:vertical"></textarea></div>
           <div class="form-grid-3">
             <div class="form-group"><label>Category *</label>
               <select id="pCategory" style="padding:12px;border:1.5px solid var(--border);border-radius:12px;font-family:var(--font-body);width:100%;outline:none">
@@ -242,8 +242,8 @@
           </div>
           <div class="form-section-title">Pricing & Inventory</div>
           <div class="form-grid-3">
-            <div class="form-group"><label>Price (â‚¹) *</label><input type="number" id="pPrice" placeholder="0" min="0"/></div>
-            <div class="form-group"><label>MRP (â‚¹)</label><input type="number" id="pMrp" placeholder="0" min="0"/></div>
+            <div class="form-group"><label>Price (₹) *</label><input type="number" id="pPrice" placeholder="0" min="0"/></div>
+            <div class="form-group"><label>MRP (₹)</label><input type="number" id="pMrp" placeholder="0" min="0"/></div>
             <div class="form-group"><label>Stock *</label><input type="number" id="pStock" placeholder="0" min="0"/></div>
           </div>
           <div class="form-group" style="max-width:200px">
@@ -269,24 +269,24 @@
             </label>
           </div>
           <div style="margin-top:24px;display:flex;gap:12px">
-            <button class="btn-primary" onclick="addProduct()">âœ… Add Product</button>
-            <button class="btn-outline" onclick="resetProductForm()">ðŸ”„ Reset</button>
+            <button class="btn-primary" onclick="addProduct()">✅ Add Product</button>
+            <button class="btn-outline" onclick="resetProductForm()">🔄 Reset</button>
           </div>
           <div id="addProductMsg" style="margin-top:14px"></div>
         </div>
       </div>
 
-      <!-- â•â•â•â•â•â• INVENTORY â•â•â•â•â•â• -->
+      <!-- ══════ INVENTORY ══════ -->
       <div class="admin-panel" id="panel-inventory">
         <div class="admin-table-wrap" style="margin-bottom:24px">
-          <div class="table-header"><span class="table-title">âš ï¸ Low Stock (â‰¤10 units)</span></div>
+          <div class="table-header"><span class="table-title">⚠️ Low Stock (≤10 units)</span></div>
           <table>
             <thead><tr><th>Image</th><th>Product</th><th>Category</th><th>Current Stock</th><th>Update Stock</th><th>Action</th></tr></thead>
             <tbody id="lowStockTable"></tbody>
           </table>
         </div>
         <div class="admin-table-wrap">
-          <div class="table-header"><span class="table-title">âŒ Out of Stock</span></div>
+          <div class="table-header"><span class="table-title">❌ Out of Stock</span></div>
           <table>
             <thead><tr><th>Image</th><th>Product</th><th>Category</th><th>Stock</th><th>Update Stock</th><th>Action</th></tr></thead>
           <tbody id="outStockTable"></tbody>
@@ -294,12 +294,12 @@
         </div>
       </div>
 
-      <!-- â•â•â•â•â•â• USERS â•â•â•â•â•â• -->
+      <!-- ══════ USERS ══════ -->
       <div class="admin-panel" id="panel-users">
         <div class="admin-table-wrap">
           <div class="table-header">
-            <span class="table-title">ðŸ‘¥ Customers</span>
-            <input type="text" class="table-search" placeholder="Search by name or emailâ€¦" id="userSearch" oninput="loadAdminUsers()"/>
+            <span class="table-title">👥 Customers</span>
+            <input type="text" class="table-search" placeholder="Search by name or email…" id="userSearch" oninput="loadAdminUsers()"/>
           </div>
           <table>
             <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Joined</th><th>Addresses</th></tr></thead>
@@ -308,10 +308,10 @@
         </div>
       </div>
 
-      <!-- â•â•â•â•â•â• COUPONS â•â•â•â•â•â• -->
+      <!-- ══════ COUPONS ══════ -->
       <div class="admin-panel" id="panel-coupons">
         <div style="background:white;border-radius:18px;border:1.5px solid var(--border);padding:24px;margin-bottom:24px;box-shadow:var(--shadow-sm)">
-          <h3 style="font-family:var(--font-display);font-size:16px;font-weight:700;margin-bottom:16px">âž• Create Coupon</h3>
+          <h3 style="font-family:var(--font-display);font-size:16px;font-weight:700;margin-bottom:16px">➕ Create Coupon</h3>
           <div class="form-grid-3">
             <div class="form-group"><label>Code *</label><input type="text" id="cpCode" placeholder="SAVE20" style="text-transform:uppercase"/></div>
             <div class="form-group"><label>Type *</label>
@@ -324,18 +324,18 @@
             <div class="form-group"><label>Value *</label><input type="number" id="cpValue" placeholder="10"/></div>
           </div>
           <div class="form-grid-3">
-            <div class="form-group"><label>Min Order (â‚¹)</label><input type="number" id="cpMin" placeholder="0"/></div>
-            <div class="form-group"><label>Max Discount (â‚¹)</label><input type="number" id="cpMaxDisc" placeholder="Optional"/></div>
+            <div class="form-group"><label>Min Order (₹)</label><input type="number" id="cpMin" placeholder="0"/></div>
+            <div class="form-group"><label>Max Discount (₹)</label><input type="number" id="cpMaxDisc" placeholder="Optional"/></div>
             <div class="form-group"><label>Usage Limit</label><input type="number" id="cpUsage" placeholder="100"/></div>
           </div>
           <div class="form-grid">
             <div class="form-group"><label>Description</label><input type="text" id="cpDesc" placeholder="10% off on all orders"/></div>
             <div class="form-group"><label>Valid Till *</label><input type="date" id="cpTill"/></div>
           </div>
-          <button class="btn-primary" onclick="createCoupon()">âœ… Create Coupon</button>
+          <button class="btn-primary" onclick="createCoupon()">✅ Create Coupon</button>
         </div>
         <div class="admin-table-wrap">
-          <div class="table-header"><span class="table-title">ðŸŽŸï¸ Active Coupons</span></div>
+          <div class="table-header"><span class="table-title">🎟️ Active Coupons</span></div>
           <table>
             <thead><tr><th>Code</th><th>Type</th><th>Value</th><th>Min Order</th><th>Used/Limit</th><th>Valid Till</th><th>Status</th><th>Action</th></tr></thead>
             <tbody id="couponsTable"></tbody>
@@ -352,7 +352,7 @@
   <div class="modal-box">
     <div class="modal-box-header">
       <h3 style="font-family:var(--font-display);font-size:17px;font-weight:700">Update Order Status</h3>
-      <button onclick="closeStatusModal()" style="font-size:20px;color:var(--text-muted);background:none;border:none;cursor:pointer">âœ•</button>
+      <button onclick="closeStatusModal()" style="font-size:20px;color:var(--text-muted);background:none;border:none;cursor:pointer">✕</button>
     </div>
     <div class="modal-box-body">
       <p style="margin-bottom:14px;font-size:14px;color:var(--text-muted)">Order: <strong id="modalOrderNum"></strong></p>
@@ -407,16 +407,16 @@
 
   function refreshCurrentPanel() { showPanel(currentPanel); }
 
-  // â”€â”€ DASHBOARD â”€â”€
+  // ── DASHBOARD ──
   async function loadDashboard() {
     try {
       const res = await AdminAPI.getStats();
       const s = res.stats;
-      document.getElementById('statRevenue').textContent = `â‚¹${(s.totalRevenue || 0).toLocaleString('en-IN')}`;
+      document.getElementById('statRevenue').textContent = `₹${(s.totalRevenue || 0).toLocaleString('en-IN')}`;
       document.getElementById('statTotalOrders').textContent = s.totalOrders || 0;
       document.getElementById('statUsers').textContent = s.totalUsers || 0;
       document.getElementById('statProducts').textContent = s.totalProducts || 0;
-      document.getElementById('todayRevLabel').textContent = `â‚¹${(s.todayRevenue || 0).toLocaleString('en-IN')} today`;
+      document.getElementById('todayRevLabel').textContent = `₹${(s.todayRevenue || 0).toLocaleString('en-IN')} today`;
       document.getElementById('todayOrdLabel').textContent = `${s.todayOrders || 0} today`;
       renderOrdersChart(s.last7Days || []);
       renderStatusChart(s.ordersByStatus || []);
@@ -454,14 +454,14 @@
     document.getElementById('recentOrdersTable').innerHTML = orders.map(o => `
       <tr>
         <td style="font-weight:600">#${o.orderNumber}</td>
-        <td>${o.user?.name || 'â€”'}</td>
-        <td>â‚¹${o.pricing?.total || 0}</td>
+        <td>${o.user?.name || '—'}</td>
+        <td>₹${o.pricing?.total || 0}</td>
         <td><span class="status-pill status-${o.status}">${o.status}</span></td>
         <td style="color:var(--text-muted)">${new Date(o.createdAt).toLocaleDateString('en-IN')}</td>
       </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">No orders yet</td></tr>';
   }
 
-  // â”€â”€ ORDERS â”€â”€
+  // ── ORDERS ──
   async function loadAdminOrders() {
     const status = document.getElementById('orderStatusFilter')?.value;
     const search = document.getElementById('orderSearch')?.value;
@@ -474,10 +474,10 @@
       document.getElementById('ordersTable').innerHTML = orders.map(o => `
         <tr>
           <td style="font-weight:700">#${o.orderNumber}</td>
-          <td><div style="font-weight:600">${o.user?.name || 'â€”'}</div><div style="font-size:12px;color:var(--text-muted)">${o.user?.email || ''}</div></td>
+          <td><div style="font-weight:600">${o.user?.name || '—'}</div><div style="font-size:12px;color:var(--text-muted)">${o.user?.email || ''}</div></td>
           <td>${o.items?.length || 0} items</td>
-          <td style="font-weight:700">â‚¹${o.pricing?.total || 0}</td>
-          <td><span class="status-pill ${o.payment?.status === 'paid' ? 'status-delivered' : 'status-placed'}">${o.payment?.method} Â· ${o.payment?.status}</span></td>
+          <td style="font-weight:700">₹${o.pricing?.total || 0}</td>
+          <td><span class="status-pill ${o.payment?.status === 'paid' ? 'status-delivered' : 'status-placed'}">${o.payment?.method} · ${o.payment?.status}</span></td>
           <td><span class="status-pill status-${o.status}">${o.status.replace(/_/g,' ')}</span></td>
           <td style="color:var(--text-muted);font-size:12px">${new Date(o.createdAt).toLocaleDateString('en-IN')}</td>
           <td><button class="action-btn btn-edit" onclick="openStatusModal('${o._id}','${o.orderNumber}','${o.status}')">Update</button></td>
@@ -498,11 +498,11 @@
       await AdminAPI.updateOrderStatus(selectedOrderId, document.getElementById('newStatusSelect').value);
       closeStatusModal();
       loadAdminOrders();
-      showToast('Status updated! âœ…', 'success');
+      showToast('Status updated! ✅', 'success');
     } catch(e) { showToast(e.message, 'error'); }
   }
 
-  // â”€â”€ PRODUCTS â”€â”€
+  // ── PRODUCTS ──
   async function loadAdminProducts() {
     const search = document.getElementById('productSearch')?.value;
     try {
@@ -512,12 +512,12 @@
         <tr>
           <td><img class="product-thumb" src="${p.images?.[0] || 'https://via.placeholder.com/44'}" alt="${p.name}" onerror="this.src='https://via.placeholder.com/44'"/></td>
           <td><div style="font-weight:600;font-size:14px">${p.name}</div><div style="font-size:12px;color:var(--text-muted)">${p.brand || ''}</div></td>
-          <td style="color:var(--text-muted)">${p.category?.name || 'â€”'}</td>
-          <td><strong>â‚¹${p.price}</strong>${p.mrp > p.price ? `<br/><span style="font-size:11px;color:var(--text-muted);text-decoration:line-through">â‚¹${p.mrp}</span>` : ''}</td>
+          <td style="color:var(--text-muted)">${p.category?.name || '—'}</td>
+          <td><strong>₹${p.price}</strong>${p.mrp > p.price ? `<br/><span style="font-size:11px;color:var(--text-muted);text-decoration:line-through">₹${p.mrp}</span>` : ''}</td>
           <td class="${p.stock === 0 ? 'stock-low' : p.stock <= 10 ? 'stock-low' : 'stock-ok'}">${p.stock}</td>
           <td><span class="status-badge" style="background:${p.isActive ? 'var(--green-light)' : '#fef2f2'};color:${p.isActive ? 'var(--green)' : 'var(--red)'}">${p.isActive ? 'Active' : 'Inactive'}</span></td>
           <td style="display:flex;gap:6px;flex-wrap:wrap">
-            <button class="action-btn btn-danger" onclick="deleteProduct('${p._id}')">ðŸ—‘ï¸</button>
+            <button class="action-btn btn-danger" onclick="deleteProduct('${p._id}')">🗑️</button>
           </td>
         </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:40px">No products found</td></tr>';
     } catch(e) { showToast('Error loading products', 'error'); }
@@ -571,7 +571,7 @@
     };
     try {
       await api.post('/products', payload);
-      showToast('Product added! âœ…', 'success');
+      showToast('Product added! ✅', 'success');
       resetProductForm();
       loadAdminProducts();
     } catch(e) { showToast(e.message, 'error'); }
@@ -588,7 +588,7 @@
     document.getElementById('imgPreviewGrid').innerHTML = '';
   }
 
-  // â”€â”€ INVENTORY â”€â”€
+  // ── INVENTORY ──
   async function loadInventory() {
     try {
       const res = await AdminAPI.getInventory();
@@ -597,7 +597,7 @@
           <tr>
             <td><img class="product-thumb" src="${p.images?.[0] || 'https://via.placeholder.com/44'}" onerror="this.src='https://via.placeholder.com/44'"/></td>
             <td style="font-weight:600">${p.name}</td>
-            <td style="color:var(--text-muted)">${p.category?.name || 'â€”'}</td>
+            <td style="color:var(--text-muted)">${p.category?.name || '—'}</td>
             <td class="stock-low">${p.stock}</td>
             <td><input class="stock-input" type="number" value="${p.stock}" min="0" id="stock-${p._id}"/></td>
             <td><button class="action-btn btn-success" onclick="updateStock('${p._id}')">Update</button></td>
@@ -613,12 +613,12 @@
     if (isNaN(val) || val < 0) { showToast('Invalid stock value', 'warning'); return; }
     try {
       await AdminAPI.updateInventory(productId, val);
-      showToast('Stock updated! âœ…', 'success');
+      showToast('Stock updated! ✅', 'success');
       loadInventory();
     } catch(e) { showToast(e.message, 'error'); }
   }
 
-  // â”€â”€ USERS â”€â”€
+  // ── USERS ──
   async function loadAdminUsers() {
     const search = document.getElementById('userSearch')?.value;
     try {
@@ -628,7 +628,7 @@
         <tr>
           <td><div style="font-weight:600">${u.name}</div></td>
           <td style="color:var(--text-muted)">${u.email}</td>
-          <td>${u.phone || 'â€”'}</td>
+          <td>${u.phone || '—'}</td>
           <td><span class="status-badge" style="background:${u.role === 'admin' ? 'var(--primary-light)' : 'var(--green-light)'};color:${u.role === 'admin' ? 'var(--primary)' : 'var(--green)'}">${u.role}</span></td>
           <td style="color:var(--text-muted);font-size:12px">${new Date(u.createdAt).toLocaleDateString('en-IN')}</td>
           <td>${(u.addresses || []).length}</td>
@@ -636,7 +636,7 @@
     } catch(e) { showToast('Error loading users', 'error'); }
   }
 
-  // â”€â”€ COUPONS â”€â”€
+  // ── COUPONS ──
   async function loadCoupons() {
     try {
       const res = await AdminAPI.getCoupons ? await AdminAPI.getCoupons() : await api.get('/coupons');
@@ -645,12 +645,12 @@
         <tr>
           <td style="font-weight:700;letter-spacing:1px">${c.code}</td>
           <td>${c.type}</td>
-          <td>${c.type === 'percentage' ? c.value + '%' : 'â‚¹' + c.value}</td>
-          <td>â‚¹${c.minOrderAmount || 0}</td>
+          <td>${c.type === 'percentage' ? c.value + '%' : '₹' + c.value}</td>
+          <td>₹${c.minOrderAmount || 0}</td>
           <td>${c.usedCount || 0} / ${c.usageLimit}</td>
           <td style="font-size:12px;color:var(--text-muted)">${new Date(c.validTill).toLocaleDateString('en-IN')}</td>
           <td><span class="status-badge" style="background:${c.isActive ? 'var(--green-light)' : '#fef2f2'};color:${c.isActive ? 'var(--green)' : 'var(--red)'}">${c.isActive ? 'Active' : 'Inactive'}</span></td>
-          <td><button class="action-btn btn-danger" onclick="deleteCoupon('${c._id}')">ðŸ—‘ï¸</button></td>
+          <td><button class="action-btn btn-danger" onclick="deleteCoupon('${c._id}')">🗑️</button></td>
         </tr>`).join('') || '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:40px">No coupons</td></tr>';
     } catch(e) { showToast('Error', 'error'); }
   }
@@ -670,7 +670,7 @@
         description: document.getElementById('cpDesc').value.trim(),
         validTill: new Date(till),
       });
-      showToast('Coupon created! âœ…', 'success');
+      showToast('Coupon created! ✅', 'success');
       ['cpCode','cpValue','cpMin','cpMaxDisc','cpUsage','cpDesc','cpTill'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
       loadCoupons();
     } catch(e) { showToast(e.message, 'error'); }

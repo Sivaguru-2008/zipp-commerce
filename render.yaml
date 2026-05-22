@@ -1,0 +1,54 @@
+# Render.com Infrastructure as Code — single-service deploy.
+# The Express app serves /frontend as static files, so there's no separate
+# web service. Mongo Atlas + Render's free tier are enough for beta launch.
+#
+# Apply: connect this repo at https://dashboard.render.com/blueprints
+# After first deploy: set the secrets marked `sync: false` in the dashboard.
+
+services:
+  - type: web
+    name: zipp-commerce
+    runtime: node
+    plan: starter
+    region: singapore
+    rootDir: backend
+    buildCommand: npm ci --omit=dev
+    startCommand: node server.js
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: info
+      - key: TRUST_PROXY
+        value: "1"
+      - key: MONGO_POOL_SIZE
+        value: "20"
+      - key: PORT
+        value: "10000"
+
+      # Secrets — set these in the Render dashboard after first deploy.
+      - key: JWT_SECRET
+        sync: false
+      - key: MONGO_URI
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: REDIS_URL
+        sync: false
+
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+
+      - key: SENTRY_DSN
+        sync: false

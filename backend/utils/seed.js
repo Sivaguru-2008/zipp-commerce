@@ -1,6 +1,5 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/zipp';
 
@@ -62,12 +61,14 @@ const warehouses = [
   }
 ];
 
+// Validity 1 year out keeps the demo deck usable in any month.
+const COUPON_VALID_TILL = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
 const coupons = [
-  { code: 'ZIPP10', description: '10% off on first order', type: 'percentage', value: 10, minOrderAmount: 199, maxDiscount: 100, usageLimit: 1000, validTill: new Date('2025-12-31') },
-  { code: 'SAVE50', description: 'Flat ₹50 off', type: 'fixed', value: 50, minOrderAmount: 299, usageLimit: 500, validTill: new Date('2025-12-31') },
-  { code: 'FREEDEL', description: 'Free delivery on any order', type: 'free_delivery', value: 40, minOrderAmount: 0, usageLimit: 200, validTill: new Date('2025-12-31') },
-  { code: 'NEWUSER', description: '20% off for new users', type: 'percentage', value: 20, minOrderAmount: 399, maxDiscount: 150, usageLimit: 1000, validTill: new Date('2025-12-31') },
-  { code: 'WEEKEND20', description: '20% weekend special', type: 'percentage', value: 20, minOrderAmount: 499, maxDiscount: 200, usageLimit: 300, validTill: new Date('2025-12-31') },
+  { code: 'ZIPP10',    description: '10% off on first order',       type: 'percentage',    value: 10, minOrderAmount: 199, maxDiscount: 100, usageLimit: 1000, validTill: COUPON_VALID_TILL },
+  { code: 'SAVE50',    description: 'Flat ₹50 off',                  type: 'fixed',         value: 50, minOrderAmount: 299, usageLimit: 500,  validTill: COUPON_VALID_TILL },
+  { code: 'FREEDEL',   description: 'Free delivery on any order',    type: 'free_delivery', value: 40, minOrderAmount: 0,   usageLimit: 200,  validTill: COUPON_VALID_TILL },
+  { code: 'NEWUSER',   description: '20% off for new users',         type: 'percentage',    value: 20, minOrderAmount: 399, maxDiscount: 150, usageLimit: 1000, validTill: COUPON_VALID_TILL },
+  { code: 'WEEKEND20', description: '20% weekend special',           type: 'percentage',    value: 20, minOrderAmount: 499, maxDiscount: 200, usageLimit: 300,  validTill: COUPON_VALID_TILL },
 ];
 
 function getProducts(categoryMap) {
@@ -146,6 +147,9 @@ async function seed() {
       Warehouse.deleteMany({})
     ]);
     console.log('🗑️  Cleared existing data');
+    // Keep bcrypt imported for future direct hashing needs, but DO NOT
+    // hash here — User.pre('save') hashes automatically. Pre-hashing here
+    // would double-hash and break login.
 
     // Create categories
     const createdCategories = await Category.insertMany(categories);
@@ -172,23 +176,21 @@ async function seed() {
     await Coupon.insertMany(coupons);
     console.log(`✅ Created ${coupons.length} coupons`);
 
-    // Create admin user
-    const adminPassword = await bcrypt.hash('password123', 10);
+    // Create admin user — pre-save hook hashes the password.
     await User.create({
       name: 'Admin User',
       email: 'admin@example.com',
-      password: adminPassword,
+      password: 'password123',
       role: 'admin',
       phone: '9999999999',
       isVerified: true
     });
 
     // Create sample user
-    const userPassword = await bcrypt.hash('user123', 10);
     await User.create({
       name: 'John Doe',
       email: 'user@example.com',
-      password: userPassword,
+      password: 'user123',
       role: 'user',
       phone: '9876543210',
       isVerified: true,
@@ -207,9 +209,10 @@ async function seed() {
 
     console.log('\n🎉 Seed complete!');
     console.log('📦 Admin: admin@example.com / password123');
-    console.log('👤 User: user@example.com / user123');
-    console.log(`📊 ${createdProducts.length} products, ${createdCategories.length} categories, ${createdWarehouses.length} warehouses`);
-    console.log('\n🚀 Run: cd backend && npm run dev');
+    console.log('👤 User : user@example.com / user123');
+    console.log(`📊 ${createdProducts.length} products, ${createdCategories.length} categories, ${createdWarehouses.length} warehouses, ${coupons.length} coupons`);
+    console.log('\n🚀 Next: cd backend && npm run dev');
+    console.log('🩺 Health probe: curl http://localhost:5000/health');
 
     await mongoose.disconnect();
   } catch (err) {
