@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#6C3BFF" />
+  <title>Zipp Admin · Operational Analytics</title>
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    body { background: #f6f5fb; }
+    .aa-wrap { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    .aa-head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+    .aa-head h1 { font-family: 'Syne', sans-serif; font-size: 1.8rem; margin: 0; }
+    .aa-head .sub { color: #666; font-size: .92rem; }
+    .aa-controls select, .aa-controls button { padding: 8px 14px; border-radius: 10px; border: 1px solid #d8d4ea; background: white; font-size: .95rem; }
+    .aa-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 24px; }
+    .aa-card { background: white; border-radius: 16px; padding: 18px 20px; box-shadow: 0 2px 8px rgba(20,20,40,.06); }
+    .aa-card .label { font-size: .82rem; color: #888; text-transform: uppercase; letter-spacing: .04em; }
+    .aa-card .value { font-size: 1.85rem; font-weight: 700; margin-top: 4px; font-family: 'Syne', sans-serif; }
+    .aa-card .sub  { font-size: .85rem; color: #666; margin-top: 4px; }
+    .aa-card.warn  .value { color: #b8451c; }
+    .aa-card.ok    .value { color: #1f7a3b; }
+    .aa-section { background: white; border-radius: 16px; padding: 22px 24px; margin-bottom: 18px; box-shadow: 0 2px 8px rgba(20,20,40,.06); }
+    .aa-section h2 { font-size: 1.05rem; margin: 0 0 14px; font-family: 'Syne', sans-serif; }
+    .aa-chart { width: 100%; height: 180px; }
+    .aa-chart-axis { font-size: 10px; fill: #aaa; }
+    .aa-bar { fill: #6C3BFF; opacity: .8; }
+    .aa-bar:hover { opacity: 1; }
+    .aa-line { fill: none; stroke: #6C3BFF; stroke-width: 2; }
+    .aa-area { fill: rgba(108,59,255,.10); stroke: none; }
+    table.aa-table { width: 100%; border-collapse: collapse; font-size: .93rem; }
+    table.aa-table th, table.aa-table td { text-align: left; padding: 9px 8px; border-bottom: 1px solid #f0eef7; }
+    table.aa-table th { font-weight: 600; color: #666; font-size: .82rem; text-transform: uppercase; letter-spacing: .04em; }
+    .aa-status-pill { display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: .78rem; font-weight: 600; background: #efeafd; color: #5a2dcc; }
+    .aa-status-pill.cancelled { background: #fde6e1; color: #b8451c; }
+    .aa-status-pill.delivered { background: #e1f3e7; color: #1f7a3b; }
+    .aa-flex { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; }
+    @media (max-width: 800px) { .aa-flex { grid-template-columns: 1fr; } }
+    .aa-loading { text-align: center; padding: 40px; color: #888; }
+    #adminGate { display: none; padding: 60px 20px; text-align: center; }
+    #adminGate h2 { font-family: 'Syne', sans-serif; }
+  </style>
+</head>
+<body>
+
+<div class="aa-wrap" id="adminPanel">
+  <div class="aa-head">
+    <div>
+      <h1>📊 Operational Analytics</h1>
+      <div class="sub" id="aaUpdatedAt">Loading…</div>
+    </div>
+    <div class="aa-controls">
+      <label for="rangeSel" style="font-size:.9rem;color:#666;margin-right:6px">Range</label>
+      <select id="rangeSel">
+        <option value="7">Last 7 days</option>
+        <option value="14" selected>Last 14 days</option>
+        <option value="30">Last 30 days</option>
+        <option value="90">Last 90 days</option>
+      </select>
+      <button id="refreshBtn" type="button">Refresh</button>
+    </div>
+  </div>
+
+  <!-- KPI cards -->
+  <div class="aa-grid" id="kpiGrid">
+    <div class="aa-loading" style="grid-column:1/-1">Loading overview…</div>
+  </div>
+
+  <div class="aa-flex">
+    <div>
+      <div class="aa-section">
+        <h2>Revenue trend (₹)</h2>
+        <svg class="aa-chart" id="revenueChart" viewBox="0 0 600 180" preserveAspectRatio="none"></svg>
+      </div>
+      <div class="aa-section">
+        <h2>Orders per day</h2>
+        <svg class="aa-chart" id="ordersChart" viewBox="0 0 600 180" preserveAspectRatio="none"></svg>
+      </div>
+      <div class="aa-section">
+        <h2>Signups</h2>
+        <svg class="aa-chart" id="signupsChart" viewBox="0 0 600 180" preserveAspectRatio="none"></svg>
+      </div>
+    </div>
+    <div>
+      <div class="aa-section">
+        <h2>Top products</h2>
+        <table class="aa-table" id="topProductsTable">
+          <thead><tr><th>Product</th><th>Qty</th><th>Revenue</th></tr></thead>
+          <tbody><tr><td colspan="3" class="aa-loading">Loading…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="aa-section">
+        <h2>Order status breakdown</h2>
+        <table class="aa-table" id="statusTable">
+          <tbody><tr><td class="aa-loading">Loading…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="aa-section">
+        <h2>Operational health</h2>
+        <table class="aa-table" id="opsTable">
+          <tbody><tr><td class="aa-loading">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="adminGate">
+  <h2>🔒 Admin access required</h2>
+  <p>This dashboard is restricted to administrator accounts.</p>
+  <p><a href="/pages/login.html" style="color:#6C3BFF;font-weight:600">Sign in →</a></p>
+</div>
+
+<div id="toastContainer"></div>
+
+<script src="/js/observability.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/toast.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/admin-analytics.js"></script>
+
+</body>
+</html>
