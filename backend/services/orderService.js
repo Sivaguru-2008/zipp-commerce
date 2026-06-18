@@ -1,5 +1,7 @@
 const ApiError = require('../utils/ApiError');
 const analytics = require('../utils/analytics');
+const sentry = require('../utils/sentry');
+const { withTransaction } = require('../utils/tx');
 const productService = require('./productService');
 const paymentService = require('./paymentService');
 const repo = require('../repositories/orderRepository');
@@ -32,6 +34,9 @@ exports.getById = async (orderId, requester) => {
 exports.placeOrder = async (userId, { deliveryAddress, paymentMethod = 'cod', deliveryInstructions, coupon: clientCoupon }) => {
   if (!deliveryAddress) throw new ApiError(400, 'Delivery address is required');
 
+  // Read cart outside the transaction — populate() with sessions can be
+  // problematic across Mongoose versions, and we re-validate stock inside
+  // the tx via the atomic $gte decrement anyway.
   const cart = await repo.findCartWithProducts(userId);
   if (!cart || cart.items.length === 0) {
     throw new ApiError(400, 'Cart is empty');
@@ -49,7 +54,7 @@ exports.placeOrder = async (userId, { deliveryAddress, paymentMethod = 'cod', de
     };
   }
 
-  // Stock revalidation before we mutate anything.
+  // Stock revalidation before we mutate anything (cheap fast-fail).
   for (const item of cart.items) {
     const product = item.product;
     if (!product || !product.isActive) {
@@ -75,35 +80,65 @@ exports.placeOrder = async (userId, { deliveryAddress, paymentMethod = 'cod', de
   const couponDiscount = cart.coupon ? cart.coupon.discount : 0;
   const total = subtotal + deliveryFee + tax - couponDiscount;
 
-  const order = await repo.create({
-    user: userId,
-    items,
-    deliveryAddress,
-    pricing: { subtotal, deliveryFee, tax, discount: 0, couponDiscount, total },
-    payment: { method: paymentMethod, status: 'pending' },
-    coupon: cart.coupon,
-    deliveryInstructions,
-    estimatedDelivery: new Date(Date.now() + ESTIMATED_DELIVERY_MS),
-    statusHistory: [{ status: 'placed', message: 'Order placed successfully', timestamp: new Date() }]
+  sentry.addBreadcrumb({
+    category: 'order',
+    message: 'place_order:start',
+    data: { userId: String(userId), subtotal, total, itemCount: items.length, paymentMethod }
   });
 
-  // Atomic stock decrement with $gte guard — rolls back the order if any
-  // product was sold out between revalidation and now.
-  const stockErrors = [];
-  for (const item of cart.items) {
-    const updated = await repo.decrementStockIfAvailable(item.product._id, item.quantity);
-    if (!updated) stockErrors.push(item.product.name || item.name);
-  }
-  if (stockErrors.length > 0) {
-    await repo.deleteById(order._id);
-    throw new ApiError(409, `Stock depleted for: ${stockErrors.join(', ')}. Please refresh your cart.`);
-  }
+  // === Atomic block ===
+  // 1) Create the Order doc
+  // 2) Decrement stock for every line item (atomic, with $gte guard)
+  // 3) Clear the cart
+  // If any line's stock goes below request qty, throw → tx aborts → order
+  // and any prior decrements roll back.
+  //
+  // On standalone Mongo (dev) withTransaction passes session=null and the
+  // existing best-effort rollback path applies (delete the order on
+  // stock failure).
+  const order = await withTransaction(async (session) => {
+    const orderDoc = await repo.createInSession({
+      user: userId,
+      items,
+      deliveryAddress,
+      pricing: { subtotal, deliveryFee, tax, discount: 0, couponDiscount, total },
+      payment: { method: paymentMethod, status: 'pending' },
+      coupon: cart.coupon,
+      deliveryInstructions,
+      estimatedDelivery: new Date(Date.now() + ESTIMATED_DELIVERY_MS),
+      statusHistory: [{ status: 'placed', message: 'Order placed successfully', timestamp: new Date() }]
+    }, session);
 
-  await repo.clearCart(userId);
+    const stockErrors = [];
+    for (const item of cart.items) {
+      const updated = await repo.decrementStockIfAvailable(item.product._id, item.quantity, session);
+      if (!updated) stockErrors.push(item.product.name || item.name);
+    }
+
+    if (stockErrors.length > 0) {
+      if (session) {
+        // Inside a real transaction — throwing rolls everything back including
+        // the order doc and any successful decrements.
+        throw new ApiError(409, `Stock depleted for: ${stockErrors.join(', ')}. Please refresh your cart.`);
+      }
+      // Standalone fallback: manually clean up the just-created order.
+      await repo.deleteById(orderDoc._id);
+      throw new ApiError(409, `Stock depleted for: ${stockErrors.join(', ')}. Please refresh your cart.`);
+    }
+
+    await repo.clearCart(userId, session);
+    return orderDoc;
+  });
+
   // Stock changed for every line item — drop cached product views so the
   // next read reflects current stock. Fire-and-forget; cache miss is safe.
   productService.invalidate().catch(() => {});
   analytics.incrementOrder(userId, items).catch(() => {});
+  sentry.addBreadcrumb({
+    category: 'order',
+    message: 'place_order:committed',
+    data: { orderId: String(order._id), total }
+  });
   return order;
 };
 

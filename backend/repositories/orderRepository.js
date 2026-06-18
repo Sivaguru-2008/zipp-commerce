@@ -25,21 +25,35 @@ exports.findAll     = (filter, { limit, skip }) =>
     .limit(limit)
     .skip(skip);
 
-exports.findCartWithProducts = (userId) =>
-  Cart.findOne({ user: userId }).populate('items.product');
+exports.findCartWithProducts = (userId, session) =>
+  Cart.findOne({ user: userId }).session(session || null).populate('items.product');
 
-exports.clearCart = (userId) =>
-  Cart.findOneAndUpdate({ user: userId }, { items: [], coupon: null });
-
-// Atomic decrement — returns null when current stock is below requested qty
-// so callers can detect contention and roll the order back.
-exports.decrementStockIfAvailable = (productId, quantity) =>
-  Product.findOneAndUpdate(
-    { _id: productId, stock: { $gte: quantity } },
-    { $inc: { stock: -quantity, soldCount: quantity } }
+exports.clearCart = (userId, session) =>
+  Cart.findOneAndUpdate(
+    { user: userId },
+    { items: [], coupon: null },
+    { session: session || null }
   );
 
-exports.restoreStock = (productId, quantity) =>
+// Atomic decrement — returns null when current stock is below requested qty
+// so callers can detect contention and roll the order back. When a session
+// is passed the decrement participates in the surrounding transaction.
+exports.decrementStockIfAvailable = (productId, quantity, session) =>
+  Product.findOneAndUpdate(
+    { _id: productId, stock: { $gte: quantity } },
+    { $inc: { stock: -quantity, soldCount: quantity } },
+    { session: session || null }
+  );
+
+exports.restoreStock = (productId, quantity, session) =>
   Product.findByIdAndUpdate(productId, {
     $inc: { stock: quantity, soldCount: -quantity }
-  });
+  }, { session: session || null });
+
+// Transactional create — `create([doc], { session })` is the Mongoose
+// idiom for participating in a transaction (the single-arg form bypasses it).
+exports.createInSession = async (data, session) => {
+  if (!session) return Order.create(data);
+  const [doc] = await Order.create([data], { session });
+  return doc;
+};
