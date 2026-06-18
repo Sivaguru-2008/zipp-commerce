@@ -4,6 +4,7 @@ const router = express.Router();
 
 const ctrl = require('../controllers/orderController');
 const { protect, adminOnly } = require('../middleware/auth');
+const requireVerified = require('../middleware/requireVerified');
 const validate = require('../middleware/validate');
 const asyncHandler = require('../middleware/asyncHandler');
 
@@ -13,6 +14,7 @@ router.get('/:id',        protect, asyncHandler(ctrl.get));
 
 router.post('/',
   protect,
+  requireVerified,
   body('deliveryAddress.fullName').trim().notEmpty().withMessage('Delivery full name is required'),
   body('deliveryAddress.phone').isMobilePhone().withMessage('Valid delivery phone number is required'),
   body('deliveryAddress.addressLine1').trim().notEmpty().withMessage('Address line 1 is required'),
