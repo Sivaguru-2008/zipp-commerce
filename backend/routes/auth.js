@@ -33,4 +33,29 @@ router.put('/change-password',
   asyncHandler(ctrl.changePassword)
 );
 
+// Refresh / logout do not require a valid access token — they consume the
+// HttpOnly refresh cookie. Logout still succeeds with no cookie so the client
+// can call it on app start to clear stale state.
+router.post('/refresh', asyncHandler(ctrl.refresh));
+router.post('/logout',  asyncHandler(ctrl.logout));
+router.post('/logout-all', protect, asyncHandler(ctrl.logoutAll));
+
+// OTP flow — all behind `protect` because we tie the OTP to a user account.
+// Guest browsing remains allowed; sensitive actions check req.user.isVerified.
+const otpCtrl = require('../controllers/otpController');
+router.post('/send-otp',
+  protect,
+  body('channel').optional().isIn(['sms', 'email']).withMessage('Invalid channel'),
+  body('destination').optional().isString().isLength({ min: 5, max: 120 }),
+  validate,
+  asyncHandler(otpCtrl.send)
+);
+router.post('/verify-otp',
+  protect,
+  body('code').isString().isLength({ min: 4, max: 8 }).withMessage('Code must be 4–8 digits'),
+  validate,
+  asyncHandler(otpCtrl.verify)
+);
+router.post('/resend-otp', protect, asyncHandler(otpCtrl.resend));
+
 module.exports = router;

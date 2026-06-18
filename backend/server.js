@@ -14,10 +14,17 @@ const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const pinoHttp = require('pino-http');
 const rateLimit = require('express-rate-limit');
+const cookieParser = require('cookie-parser');
 const path = require('path');
+
+// Sentry — bootstrap before any other module that throws so we capture
+// init-time crashes. No-op if SENTRY_DSN is unset.
+const sentry = require('./utils/sentry');
+sentry.init();
 
 const requestId = require('./middleware/requestId');
 const trackActivity = require('./middleware/trackActivity');
+const latency = require('./middleware/latency');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
 
 const app = express();
@@ -65,6 +72,13 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
 
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 
+// Sentry request handler must run before any route or error handler. No-op
+// when Sentry is not configured.
+sentry.attachRequestHandler(app);
+
+// Parse cookies for HttpOnly auth tokens (zipp_at / zipp_rt).
+app.use(cookieParser());
+
 // General API rate limit — generous to keep happy paths un-throttled.
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -86,6 +100,17 @@ const authLimiter = rateLimit({
 });
 app.use('/api/auth/', authLimiter);
 
+// Dedicated, very tight bucket for OTP send/resend to prevent SMS pumping.
+// Verification (which doesn't trigger an SMS) shares the main authLimiter.
+const otpLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 10,                                  // 10 sends per IP per hour
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: { success: false, message: 'OTP send limit reached — try again in an hour' }
+});
+app.use(['/api/auth/send-otp', '/api/auth/resend-otp'], otpLimiter);
+
 // Dedicated bucket for the payment endpoints. Razorpay verify retries from
 // the SDK are common; we still want a ceiling per IP.
 const paymentLimiter = rateLimit({
@@ -96,6 +121,17 @@ const paymentLimiter = rateLimit({
   message: { success: false, message: 'Too many payment requests, please retry shortly' }
 });
 app.use('/api/payments/', paymentLimiter);
+
+// Search is the most expensive read endpoint (regex scan). Tighten its own
+// budget so a runaway client can't degrade DB latency for everyone else.
+const searchLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: { success: false, message: 'Search rate limit — slow down a moment' }
+});
+app.use('/api/products/search', searchLimiter);
 
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
@@ -142,6 +178,10 @@ app.use(pinoHttp({
 // valid Bearer token. No effect when Redis is unavailable.
 app.use('/api', trackActivity);
 
+// Per-request latency capture — records duration, emits a structured warn
+// for slow requests (> SLOW_REQUEST_MS), and feeds the admin /ops endpoint.
+app.use('/api', latency);
+
 const frontendPath = path.join(__dirname, '../frontend');
 
 // Static file caching — short for HTML (so deploys propagate quickly),
@@ -153,7 +193,19 @@ const staticOpts = {
     if (file.endsWith('.html')) res.setHeader('Cache-Control', 'no-cache');
   }
 };
-app.use('/uploads', express.static(path.join(__dirname, 'uploads'), { maxAge: '7d' }));
+// SEO routes mount before static so /sitemap.xml hits the dynamic builder
+// instead of the legacy file in /frontend.
+app.use(require('./routes/seo'));
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+  maxAge: '7d',
+  immutable: true,
+  // Tell browsers + CDNs uploads can be shared cross-route. The Cloudinary
+  // mirror path is content-addressable so we can cache aggressively.
+  setHeaders: (res) => {
+    res.setHeader('Cache-Control', 'public, max-age=604800, immutable');
+  }
+}));
 app.use(express.static(frontendPath, staticOpts));
 
 // Liveness + readiness probe for load balancers, uptime monitors, k8s.
@@ -183,6 +235,7 @@ mongoose.connect(mongoUri, mongoOpts)
     process.exit(1);
   });
 
+app.use('/api/config',     require('./routes/config'));
 app.use('/api/auth',       require('./routes/auth'));
 app.use('/api/users',      require('./routes/users'));
 app.use('/api/products',   require('./routes/products'));
@@ -193,6 +246,7 @@ app.use('/api/orders',     require('./routes/orders'));
 app.use('/api/payments',   require('./routes/payments'));
 app.use('/api/coupons',    require('./routes/coupons'));
 app.use('/api/delivery',   require('./routes/delivery'));
+app.use('/api/admin/analytics', require('./routes/adminAnalytics'));
 app.use('/api/admin',      require('./routes/admin'));
 app.use('/api/reviews',    require('./routes/reviews'));
 app.use('/api/warehouses', require('./routes/warehouses'));
@@ -203,6 +257,10 @@ app.use(notFound);
 app.get('*', (req, res) => {
   res.sendFile(path.join(frontendPath, 'index.html'));
 });
+
+// Sentry error handler — must come BEFORE our error handler so it can
+// report 5xx before the response is sanitized.
+sentry.attachErrorHandler(app);
 
 // Centralized error handler — must be the last app.use.
 app.use(errorHandler);

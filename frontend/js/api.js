@@ -1,48 +1,106 @@
-// API Configuration
+// API client.
+//
+// Auth in Sprint 6 lives in HttpOnly cookies (zipp_at / zipp_rt) set by the
+// server. fetch sends them automatically with `credentials: 'include'`. We
+// still read a legacy `zipp_token` from localStorage if present so users
+// already logged in from before don't get bounced — the server accepts both
+// cookies and the Authorization header.
+//
+// On a 401 we transparently try POST /auth/refresh once. If that succeeds the
+// original request is retried with the freshly rotated access cookie.
+
 const API_BASE = '/api';
 
+let refreshInflight = null;          // de-dupe concurrent refresh attempts
+let refreshFailedAt = 0;             // back off briefly after a hard failure
+
+async function tryRefresh() {
+  if (refreshInflight) return refreshInflight;
+  // Don't hammer the refresh endpoint if it just failed.
+  if (Date.now() - refreshFailedAt < 5000) return false;
+
+  refreshInflight = (async () => {
+    try {
+      const res = await fetch(`${API_BASE}/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!res.ok) throw new Error('refresh-failed');
+      const json = await res.json().catch(() => ({}));
+      // Mirror token into legacy localStorage so any old code paths still
+      // expecting it keep working until 6.2 lands.
+      if (json.token) localStorage.setItem('zipp_token', json.token);
+      if (json.user)  localStorage.setItem('zipp_user', JSON.stringify(json.user));
+      return true;
+    } catch {
+      refreshFailedAt = Date.now();
+      return false;
+    } finally {
+      // Release the lock on next tick so concurrent callers all see it.
+      setTimeout(() => { refreshInflight = null; }, 0);
+    }
+  })();
+  return refreshInflight;
+}
+
 const api = {
-  async request(method, endpoint, data = null, isFormData = false) {
-    const token = localStorage.getItem('zipp_token');
+  async request(method, endpoint, data = null, isFormData = false, _retried = false) {
     const headers = {};
-    if (token) headers['Authorization'] = `Bearer ${token}`;
+    // Legacy fallback — once cookie auth is fully rolled out and the user
+    // logs out then in again, this stops being read.
+    const legacyToken = localStorage.getItem('zipp_token');
+    if (legacyToken) headers['Authorization'] = `Bearer ${legacyToken}`;
     if (!isFormData) headers['Content-Type'] = 'application/json';
 
     const config = {
       method,
       headers,
+      credentials: 'include'   // HttpOnly auth cookies ride with every request
     };
     if (data) {
       config.body = isFormData ? data : JSON.stringify(data);
     }
 
-    try {
-      const res = await fetch(`${API_BASE}${endpoint}`, config);
-      const json = await res.json();
-      if (!res.ok) {
-        // express-validator returns { errors: [{ msg, path, ... }] } on 422
-        const validatorMsg = Array.isArray(json.errors) && json.errors[0] && json.errors[0].msg;
-        const err = new Error(validatorMsg || json.message || 'Request failed');
-        err.status = res.status;
-        err.errors = json.errors;
-        // Auto-clear stale session on token failure
-        if (res.status === 401 && endpoint !== '/auth/login' && endpoint !== '/auth/register') {
-          localStorage.removeItem('zipp_token');
-          localStorage.removeItem('zipp_user');
-        }
-        throw err;
+    const res = await fetch(`${API_BASE}${endpoint}`, config);
+
+    // Try one silent refresh on 401 — except for the auth endpoints themselves
+    // (login/register failures are real, not stale-token).
+    if (res.status === 401
+        && !_retried
+        && !endpoint.startsWith('/auth/login')
+        && !endpoint.startsWith('/auth/register')
+        && !endpoint.startsWith('/auth/refresh')
+        && !endpoint.startsWith('/auth/logout')) {
+      const refreshed = await tryRefresh();
+      if (refreshed) {
+        return api.request(method, endpoint, data, isFormData, true);
       }
-      return json;
-    } catch (err) {
+      // Refresh failed → truly logged out. Clear legacy stash.
+      localStorage.removeItem('zipp_token');
+      localStorage.removeItem('zipp_user');
+    }
+
+    let json;
+    try { json = await res.json(); } catch { json = {}; }
+    if (!res.ok) {
+      const validatorMsg = Array.isArray(json.errors) && json.errors[0] && json.errors[0].msg;
+      const err = new Error(validatorMsg || json.message || 'Request failed');
+      err.status = res.status;
+      err.errors = json.errors;
       throw err;
     }
+    // Keep legacy mirror in sync on successful login/register/refresh.
+    if (json && json.token) localStorage.setItem('zipp_token', json.token);
+    if (json && json.user)  localStorage.setItem('zipp_user', JSON.stringify(json.user));
+    return json;
   },
 
-  get: (endpoint) => api.request('GET', endpoint),
-  post: (endpoint, data) => api.request('POST', endpoint, data),
-  put: (endpoint, data) => api.request('PUT', endpoint, data),
-  delete: (endpoint) => api.request('DELETE', endpoint),
-  postForm: (endpoint, data) => api.request('POST', endpoint, data, true),
+  get:      (endpoint)            => api.request('GET', endpoint),
+  post:     (endpoint, data)      => api.request('POST', endpoint, data),
+  put:      (endpoint, data)      => api.request('PUT', endpoint, data),
+  delete:   (endpoint)            => api.request('DELETE', endpoint),
+  postForm: (endpoint, data)      => api.request('POST', endpoint, data, true),
 };
 
 // Product APIs
@@ -77,7 +135,13 @@ const AuthAPI = {
   login: (email, password) => api.post('/auth/login', { email, password }),
   register: (name, email, password, phone) => api.post('/auth/register', { name, email, password, phone }),
   me: () => api.get('/auth/me'),
+  refresh: () => api.post('/auth/refresh', {}),
+  logout: () => api.post('/auth/logout', {}),
+  logoutAll: () => api.post('/auth/logout-all', {}),
   changePassword: (currentPassword, newPassword) => api.put('/auth/change-password', { currentPassword, newPassword }),
+  sendOtp: (channel) => api.post('/auth/send-otp', { channel }),
+  verifyOtp: (code) => api.post('/auth/verify-otp', { code }),
+  resendOtp: () => api.post('/auth/resend-otp', {}),
 };
 
 // Order APIs
@@ -135,3 +199,7 @@ const AdminAPI = {
 // Extended Admin API
 AdminAPI.getCoupons = () => api.get('/admin/coupons');
 AdminAPI.getWarehouses = () => api.get('/admin/warehouses');
+AdminAPI.analyticsOverview = () => api.get('/admin/analytics/overview');
+AdminAPI.analyticsRevenue  = (days = 14) => api.get(`/admin/analytics/revenue?days=${days}`);
+AdminAPI.analyticsUsers    = (days = 14) => api.get(`/admin/analytics/users?days=${days}`);
+AdminAPI.analyticsOrders   = (days = 14) => api.get(`/admin/analytics/orders?days=${days}`);

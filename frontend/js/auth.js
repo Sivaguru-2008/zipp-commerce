@@ -8,16 +8,21 @@ if (typeof window.showToast !== 'function') {
 // Auth state management
 let currentUser = null;
 
+// Cookies are HttpOnly so JS can't see the access token directly. We treat
+// `zipp_user` as the source of truth for "are we logged in"; the server is
+// the real authority and api.js refreshes/clears on 401.
 function getToken() { return localStorage.getItem('zipp_token'); }
 function getUser() {
   const u = localStorage.getItem('zipp_user');
   try { return u ? JSON.parse(u) : null; } catch { return null; }
 }
-function isLoggedIn() { return !!getToken(); }
+function isLoggedIn() { return !!getUser() || !!getToken(); }
 function isAdmin() { const u = getUser(); return u && u.role === 'admin'; }
 
 function setAuth(token, user) {
-  localStorage.setItem('zipp_token', token);
+  // Cookie is the new canonical store — token here is just a legacy mirror
+  // that keeps older code paths working until 6.2 lands.
+  if (token) localStorage.setItem('zipp_token', token);
   localStorage.setItem('zipp_user', JSON.stringify(user));
   currentUser = user;
   updateNavAuth();
@@ -30,10 +35,18 @@ function clearAuth() {
   updateNavAuth();
 }
 
-function logout() {
+async function logout() {
+  // Tell the server first so it can revoke the refresh token AND clear the
+  // HttpOnly cookies — clearing localStorage alone leaves the user logged
+  // in on the server until the refresh token expires.
+  try {
+    await AuthAPI.logout();
+  } catch (_) {
+    // Network/server failure — proceed with local cleanup either way.
+  }
   clearAuth();
   showToast('Logged out successfully', 'success');
-  setTimeout(() => { window.location.href = '/'; }, 800);
+  setTimeout(() => { window.location.href = '/'; }, 600);
 }
 
 function updateNavAuth() {

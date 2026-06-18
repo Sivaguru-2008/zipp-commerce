@@ -1,16 +1,26 @@
-const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { verifyAccessToken } = require('../utils/tokens');
+const { ACCESS_COOKIE } = require('../utils/cookies');
+
+// Pull the access token from (in order): HttpOnly cookie → Authorization
+// header. Cookie is the new canonical source; Bearer header retained so
+// older clients (and curl/test harnesses) still work.
+function extractToken(req) {
+  if (req.cookies && req.cookies[ACCESS_COOKIE]) {
+    return req.cookies[ACCESS_COOKIE];
+  }
+  const h = req.headers.authorization;
+  if (h && h.startsWith('Bearer ')) return h.slice(7);
+  return null;
+}
 
 const protect = async (req, res, next) => {
   try {
-    let token;
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-      token = req.headers.authorization.split(' ')[1];
-    }
+    const token = extractToken(req);
     if (!token) {
       return res.status(401).json({ success: false, message: 'Not authorized, no token' });
     }
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = verifyAccessToken(token);
     req.user = await User.findById(decoded.id).select('-password');
     if (!req.user) {
       return res.status(401).json({ success: false, message: 'User not found' });
@@ -31,12 +41,9 @@ const adminOnly = (req, res, next) => {
 
 const optionalAuth = async (req, res, next) => {
   try {
-    let token;
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-      token = req.headers.authorization.split(' ')[1];
-    }
+    const token = extractToken(req);
     if (token) {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = verifyAccessToken(token);
       req.user = await User.findById(decoded.id).select('-password');
     }
     next();
