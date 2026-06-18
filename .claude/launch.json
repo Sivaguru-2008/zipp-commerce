@@ -5,7 +5,8 @@
       "name": "zipp",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
-      "port": 5000
+      "port": 5000,
+      "autoPort": true
     }
   ]
 }

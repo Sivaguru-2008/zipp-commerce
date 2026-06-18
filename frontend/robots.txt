@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /api/
+Disallow: /pages/profile.html
+Disallow: /pages/orders.html
+Disallow: /pages/wishlist.html
+Disallow: /pages/cart.html
+Disallow: /pages/checkout.html
+Disallow: /pages/order-success.html
+
+# Beta — uncomment the next line to fully de-index while in private beta
+# Disallow: /
+
+Sitemap: /sitemap.xml

@@ -180,6 +180,7 @@
 
 <script src="/js/api.js"></script>
 <script src="/js/toast.js"></script>
+<script src="/js/support.js"></script>
 <script src="/js/auth.js"></script>
 <script src="/js/ui.js"></script>
 <script>
@@ -226,7 +227,7 @@
 
       document.getElementById('orderItemsPreview').innerHTML = cartItems.slice(0, 4).map(item => `
         <div class="order-item">
-          <img class="order-item-img" src="${item.image || item.product?.images?.[0] || 'https://via.placeholder.com/50'}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/50'"/>
+          <img class="order-item-img" src="${item.image || item.product?.images?.[0] || 'https://via.placeholder.com/50'}" alt="${item.name}" loading="lazy" decoding="async" onerror="this.src='https://via.placeholder.com/50'"/>
           <div class="order-item-info">
             <div class="order-item-name">${item.name}</div>
             <div class="order-item-qty">Qty: ${item.quantity}</div>

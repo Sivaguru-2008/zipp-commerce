@@ -79,7 +79,13 @@
       "Bash(netstat -ano)",
       "mcp__Claude_Preview__preview_start",
       "PowerShell(Get-Process -Id 29900 -ErrorAction SilentlyContinue)",
-      "Bash(curl -sI http://localhost:5000/)"
+      "Bash(curl -sI http://localhost:5000/)",
+      "Bash(node -c middleware/latency.js)",
+      "Bash(node -c utils/metrics.js)",
+      "Bash(node -e \"require\\('dotenv'\\).config\\(\\); console.log\\('JWT_SECRET set:', !!process.env.JWT_SECRET, 'len:', \\(process.env.JWT_SECRET||''\\).length\\); console.log\\('MONGO_URI:', process.env.MONGO_URI ? 'set' : 'not set'\\); console.log\\('REDIS_URL:', process.env.REDIS_URL ? 'set' : 'not set'\\)\")",
+      "Bash(git check-ignore *)",
+      "Bash(grep -E \"\\\\.env\\($|\\\\s\\)\")",
+      "Bash(git config *)"
     ]
   }
 }

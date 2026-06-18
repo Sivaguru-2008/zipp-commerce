@@ -10,6 +10,7 @@ const { escapeRegex } = require('../utils/regex');
 const productService = require('../services/productService');
 
 router.use(protect, adminOnly);
+router.use(require('../middleware/auditLog'));
 
 // GET /api/admin/stats — dashboard rollup
 router.get('/stats', asyncHandler(async (req, res) => {
