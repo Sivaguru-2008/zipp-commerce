@@ -192,6 +192,7 @@
 
 <script src="/js/api.js"></script>
 <script src="/js/toast.js"></script>
+<script src="/js/support.js"></script>
 <script src="/js/auth.js"></script>
 <script src="/js/cart.js"></script>
 <script src="/js/ui.js"></script>
@@ -222,8 +223,48 @@
     }
   }
 
+  function injectSeo(p) {
+    // Fetch the server-rendered SEO bundle (JSON-LD + OG + canonical) and
+    // inject it into <head>. This is best-effort — failure is silent because
+    // SEO doesn't affect the user-visible UX.
+    fetch(`/api/seo/product/${p._id}`, { credentials: 'include' })
+      .then(r => r.ok ? r.json() : null)
+      .then(j => {
+        if (!j || !j.seo) return;
+        const seo = j.seo;
+        document.title = seo.title;
+        const setMeta = (sel, attr, value) => {
+          let el = document.head.querySelector(sel);
+          if (!el) {
+            el = document.createElement('meta');
+            const [a, v] = sel.replace(/^meta\[|\]$/g, '').split('=');
+            el.setAttribute(a, v.replace(/['"]/g, ''));
+            document.head.appendChild(el);
+          }
+          el.setAttribute(attr, value);
+        };
+        // Canonical
+        let canon = document.head.querySelector('link[rel="canonical"]');
+        if (!canon) { canon = document.createElement('link'); canon.rel = 'canonical'; document.head.appendChild(canon); }
+        canon.href = seo.canonical;
+        setMeta('meta[name="description"]',  'content', seo.description || '');
+        setMeta('meta[property="og:title"]', 'content', seo.og.title);
+        setMeta('meta[property="og:description"]', 'content', seo.og.description);
+        setMeta('meta[property="og:type"]',  'content', seo.og.type);
+        setMeta('meta[property="og:image"]', 'content', seo.og.image);
+        setMeta('meta[property="og:url"]',   'content', seo.og.url);
+        setMeta('meta[name="twitter:card"]', 'content', 'summary_large_image');
+        // JSON-LD
+        let ld = document.head.querySelector('script[type="application/ld+json"]');
+        if (!ld) { ld = document.createElement('script'); ld.type = 'application/ld+json'; document.head.appendChild(ld); }
+        ld.textContent = JSON.stringify(seo.jsonLd);
+      })
+      .catch(() => { /* SEO is best-effort */ });
+  }
+
   function renderProduct(p) {
     document.title = `${p.name} – Zipp`;
+    injectSeo(p);
     document.getElementById('breadcrumbCat').textContent = p.category?.name || 'Products';
     document.getElementById('breadcrumbName').textContent = p.name;
     document.getElementById('detailName').textContent = p.name;
