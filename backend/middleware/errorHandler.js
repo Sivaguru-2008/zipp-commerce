@@ -2,6 +2,7 @@ const multer = require('multer');
 const logger = require('../utils/logger');
 const ApiError = require('../utils/ApiError');
 const metrics = require('../utils/metrics');
+const sentry = require('../utils/sentry');
 
 // 404 handler — mounted after all routes, before errorHandler.
 function notFound(req, res, next) {
@@ -74,6 +75,14 @@ function errorHandler(err, req, res, next) { // eslint-disable-line no-unused-va
   // and don't need stack traces in the log stream.
   if (status >= 500) {
     logger.error({ err, url: req.url, method: req.method }, 'Unhandled error');
+    // Belt-and-braces report to Sentry — its own express middleware also
+    // catches these, but this path runs even on synchronous errors that
+    // bypass the framework integration.
+    sentry.captureException(err, {
+      user: req.user && req.user._id,
+      tags: { route: req.path, method: req.method },
+      extra: { url: req.originalUrl, requestId: req.id }
+    });
   } else {
     logger.warn({ err: err.message, url: req.url, method: req.method, status }, 'Request error');
   }

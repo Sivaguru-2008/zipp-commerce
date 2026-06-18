@@ -1,6 +1,8 @@
 const crypto = require('crypto');
 const ApiError = require('../utils/ApiError');
 const logger = require('../utils/logger');
+const metrics = require('../utils/metrics');
+const sentry = require('../utils/sentry');
 const { Payment, Order } = require('../models');
 
 const isDemoMode = () =>
@@ -77,6 +79,12 @@ exports.createOrder = async (userId, orderId) => {
 exports.verify = async (userId, payload) => {
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId } = payload;
 
+  sentry.addBreadcrumb({
+    category: 'payment',
+    message: 'verify:start',
+    data: { orderId: String(orderId), razorpayOrderId: razorpay_order_id }
+  });
+
   const order = await getOwnedOrder(orderId, userId);
 
   // Idempotency: if the order is already paid for this payment id, do
@@ -100,6 +108,11 @@ exports.verify = async (userId, payload) => {
       .update(body)
       .digest('hex');
     if (expected !== razorpay_signature) {
+      metrics.recordPaymentFailure('signature_mismatch').catch(() => {});
+      sentry.captureMessage('Payment signature mismatch', 'warning', {
+        tags: { stage: 'verify' },
+        extra: { orderId: String(orderId), razorpayOrderId: razorpay_order_id, userId: String(userId) }
+      });
       throw new ApiError(400, 'Payment verification failed');
     }
   }
@@ -153,6 +166,11 @@ exports.refund = async (order) => {
       refundId = refund.id;
     } catch (err) {
       logger.error({ err: err.message, orderId: order._id }, 'Razorpay refund failed');
+      metrics.recordPaymentFailure('refund_failed').catch(() => {});
+      sentry.captureException(err, {
+        tags: { stage: 'refund' },
+        extra: { orderId: String(order._id), razorpayPaymentId: paymentId }
+      });
       // Don't throw — order state must reflect cancellation either way.
     }
   } else {
