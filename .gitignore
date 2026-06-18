@@ -18,6 +18,9 @@ Thumbs.db
 *.swp
 *.swo
 
+# Per-machine Claude Code permissions cache (do not sync across devs).
+.claude/settings.local.json
+
 # Optional dev outputs
 .tmp/
 dist/
