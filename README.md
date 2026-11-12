@@ -1,276 +1,133 @@
-# ⚡ Zipp Commerce
-### Ultra-Modern Quick Commerce Platform
+# Zipp Commerce
 
-A production-grade quick commerce web app inspired by **Zepto, Blinkit, Swiggy Instamart, Amazon & Flipkart** — built with Node.js, Express, MongoDB, and Vanilla JS.
+[![Node.js](https://img.shields.io/badge/Node.js-20%2B-green.svg?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Express](https://img.shields.io/badge/Express-4.x-black.svg?logo=express&logoColor=white)](https://expressjs.com/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-8.x-brightgreen.svg?logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![Redis](https://img.shields.io/badge/Redis-Cache%20%26%20Rate%20Limit-DC382D.svg?logo=redis&logoColor=white)](https://redis.io/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg?logo=docker&logoColor=white)](https://www.docker.com/)
 
----
-
-## 🚀 Quick Start (3 steps)
-
-### 1. Install Dependencies
-```bash
-cd zipp-commerce/backend
-npm install
-```
-
-### 2. Start MongoDB
-```bash
-# macOS (with Homebrew)
-brew services start mongodb-community
-
-# Ubuntu/Linux
-sudo systemctl start mongod
-
-# Windows
-net start MongoDB
-
-# Or start manually
-mongod --dbpath /data/db
-```
-
-### 3. Seed the Database & Run
-```bash
-# Seed with sample data
-npm run seed
-
-# Start the server
-npm run dev
-```
-
-🌐 Open: **http://localhost:5000**
+A production-grade, layered quick-commerce backend (10-minute delivery model) designed for high concurrency, zero-overselling inventory guarantees, and defense-in-depth security.
 
 ---
 
-## 🔑 Login Credentials
+## 1. Problem & Architectural Approach
 
-| Role | Email | Password |
-|------|-------|----------|
-| **Admin** | admin@example.com | password123 |
-| **User** | user@example.com | user123 |
+Quick-commerce systems face acute consistency and concurrency hazards:
+1. **Overselling During Flash Traffic:** Multiple concurrent users checking out the same last unit of an inventory item causes race conditions and inconsistent stock states.
+2. **Payment Duplication & Webhook Desynchronization:** Network drops during checkout can trigger customer retries or out-of-order payment provider webhooks, risking double-charging or missed fulfillment.
+3. **Session Hijacking & Token Replay:** Mobile-first commerce clients operating on public cellular networks are susceptible to token theft and replay attacks.
+
+Zipp Commerce addresses these challenges via a decoupled **4-tier service architecture** (`routes` &rarr; `controllers` &rarr; `services` &rarr; `repositories`) with strict transactional consistency and graceful degradation across external dependencies.
 
 ---
 
-## 📁 Project Structure
+## 2. System Architecture
+
+```mermaid
+flowchart TD
+    Client([Web / Mobile Client]) --> WAF[Helmet Security Headers & Rate Limiting]
+    WAF --> Auth[Auth Interceptor: JWT + JTI Replay Detection]
+    
+    subgraph App_Layer ["Application Layer"]
+        Auth --> OrderService[Order Service]
+        Auth --> PaymentService[Payment & Idempotency Service]
+        Auth --> InventoryService[Inventory Service]
+    end
+    
+    subgraph Data_Layer ["Persistence & Cache"]
+        OrderService -->|ACID Multi-Document Session| Mongo[(MongoDB Replica Set)]
+        InventoryService -->|Atomic $inc Decrement with $gte Guard| Mongo
+        PaymentService -->|HMAC Verification & Idempotency Keys| Mongo
+        OrderService -.->|Session Cache / Degrades Gracefully| Redis[(Redis)]
+    end
+    
+    subgraph Integrations ["Third-Party External Services (Graceful Fallback)"]
+        PaymentService --> Razorpay[Razorpay Gateway]
+        Auth --> Twilio[Twilio SMS OTP]
+        App_Layer --> Cloudinary[Cloudinary CDN]
+        App_Layer --> Sentry[Sentry Error Telemetry]
+    end
+```
+
+---
+
+## 3. Key Engineering Decisions
+
+### ACID Order Processing & Concurrency Control
+- **Atomic Stock Decrement:** Stock decrements use conditional MongoDB atomic updates (`$inc: { stock: -qty }` where `stock: { $gte: qty }`) wrapped in a MongoDB replica-set transaction. If any item in a multi-item cart fails the invariant, the transaction aborts, preventing partial orders and overselling.
+- **Idempotent Payment Webhooks:** Incoming Razorpay webhooks verify SHA256 HMAC signatures. Event IDs are recorded in an idempotency collection with unique indexes, rendering retry webhooks safe and idempotent.
+
+### Defense-in-Depth Authentication
+- **Dual-Token Architecture:** Access tokens (short-lived, 15m) and Refresh tokens (long-lived, 7d) stored exclusively in `HttpOnly`, `SameSite: Strict` cookies.
+- **JTI Rotation & Replay Lockout:** Every refresh token carries a unique JWT ID (`jti`). When a refresh token is used, its `jti` is invalidated and replaced. If a previously consumed `jti` is presented again, the system flags token theft, revokes the user's entire session family, and requires re-authentication.
+- **Twilio OTP Verification:** Phone-based login utilizes constant-time comparison algorithms to mitigate timing attacks, combined with progressive IP and phone lockout policies.
+
+### Graceful Degradation Design
+The service handles infrastructure degradation without full application failure:
+- **Redis Outage:** Caching and rate-limiting fall back seamlessly to in-memory ring buffers without blocking order placement.
+- **Twilio SMS Outage:** Falls back to backup verification delivery in development/staging environments.
+- **Cloudinary / Sentry Outage:** Asset uploads and telemetry degrade to local buffered logs without throwing unhandled exceptions to users.
+
+---
+
+## 4. Repository Structure
 
 ```
 zipp-commerce/
 ├── backend/
-│   ├── middleware/
-│   │   └── auth.js              # JWT auth + role guards
-│   ├── models/
-│   │   ├── Category.js          # Category schema
-│   │   ├── Product.js           # Product schema (variants, inventory)
-│   │   ├── User.js              # User schema (addresses, loyalty)
-│   │   └── index.js             # Cart, Order, Wishlist, Coupon,
-│   │                            #   Warehouse, Payment, Notification
-│   ├── routes/
-│   │   ├── auth.js              # Register, Login, Change Password
-│   │   ├── products.js          # CRUD, Search, Featured, Trending
-│   │   ├── categories.js        # Category management
-│   │   ├── cart.js              # Add, Update, Remove, Clear
-│   │   ├── wishlist.js          # Toggle, Get, Remove
-│   │   ├── orders.js            # Place, Track, Cancel, Admin update
-│   │   ├── payments.js          # Razorpay create + verify
-│   │   ├── users.js             # Profile, Addresses, Admin users
-│   │   ├── coupons.js           # Validate, CRUD (admin)
-│   │   ├── delivery.js          # Serviceability, ETA, Warehouses
-│   │   ├── admin.js             # Stats, Inventory, Orders, Users
-│   │   ├── reviews.js           # Product reviews
-│   │   └── warehouses.js        # Warehouse list
-│   ├── utils/
-│   │   └── seed.js              # Full database seeder
-│   ├── uploads/                 # Multer file uploads
-│   ├── .env                     # Environment variables
-│   ├── package.json
-│   └── server.js                # Express app entry point
-│
-└── frontend/
-    ├── css/
-    │   └── main.css             # Complete design system
-    ├── js/
-    │   ├── api.js               # All API calls (ProductAPI, CartAPI, etc.)
-    │   ├── auth.js              # Auth state management
-    │   ├── cart.js              # Cart sidebar logic
-    │   ├── ui.js                # Toast, skeleton, product cards, search
-    │   └── home.js              # Homepage data loading
-    ├── pages/
-    │   ├── login.html           # Login + Register
-    │   ├── product.html         # Product detail + gallery + reviews
-    │   ├── search.html          # Search + filters + pagination
-    │   ├── cart.html            # Full cart with coupon
-    │   ├── checkout.html        # Address + Payment + Order placement
-    │   ├── order-success.html   # Order confirmation + tracking
-    │   ├── orders.html          # Order history + timeline
-    │   ├── profile.html         # Profile + addresses + security
-    │   └── wishlist.html        # Saved products
-    ├── index.html               # Homepage (hero, categories, products)
-    └── admin.html               # Full admin dashboard
+│   ├── config/              # Database, Redis, and service configurations
+│   ├── controllers/         # HTTP request orchestration and response formatting
+│   ├── middleware/          # JWT auth, JTI validation, rate limiting, error handlers
+│   ├── models/              # 13 Mongoose schemas (User, Order, Product, Category, etc.)
+│   ├── routes/              # 16 route modules (auth, orders, cart, products, admin)
+│   ├── services/            # Core business logic (inventory reservations, payments)
+│   ├── utils/               # Seed scripts, indexing utilities, health checks
+│   ├── server.js            # Express application bootstrap and graceful shutdown
+│   └── package.json         # Dependencies and lifecycle scripts
+├── frontend/                # Lightweight Vanilla JS / CSS3 responsive web client
+├── Dockerfile               # Production container packaging
+├── docker-compose.yml       # Full stack local orchestration (Node + Mongo + Redis)
+└── render.yaml              # Cloud deployment specification
 ```
 
 ---
 
-## 🌟 Features
+## 5. Getting Started
 
-### 🛒 Commerce
-- Dynamic product catalog with categories, search, filters, sorting
-- Cart with persistent MongoDB storage + coupon support
-- Wishlist with toggle functionality
-- Full checkout flow with address book
-- COD + Razorpay online payment
-
-### ⚡ Quick Commerce
-- 10-minute delivery ETA display
-- Dark store / warehouse logic
-- Pincode serviceability checking
-- Live order tracking timeline (7 statuses)
-
-### 👤 Users
-- JWT authentication (30-day tokens)
-- Multiple saved addresses
-- Order history with tracking
-- Profile management + password change
-
-### ⚙️ Admin Dashboard
-- Real-time analytics (revenue, orders, users, products)
-- 7-day orders chart
-- Order status management
-- Product CRUD with image support
-- Inventory management (low stock alerts)
-- Customer management
-- Coupon creation & management
-
-### 🔒 Security
-- bcrypt password hashing (12 rounds)
-- JWT authentication middleware
-- Role-based access control (user/admin/delivery)
-- Rate limiting (1000 req/15min)
-- Helmet security headers
-- Input validation
-
----
-
-## ⚙️ Environment Variables (`backend/.env`)
-
-```env
-# Required
-PORT=5000
-MONGO_URI=mongodb://127.0.0.1:27017/zipp
-JWT_SECRET=your_super_secret_key_change_this
-
-# Payments (get from razorpay.com)
-RAZORPAY_KEY_ID=rzp_test_xxxxxxxxxxxx
-RAZORPAY_KEY_SECRET=your_razorpay_secret
-
-# Maps (get from console.cloud.google.com)
-GOOGLE_MAPS_API_KEY=your_google_maps_key
-
-# Image Storage (get from cloudinary.com)
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
-```
-
----
-
-## 💳 Razorpay Setup
-
-1. Sign up at [razorpay.com](https://razorpay.com)
-2. Go to Settings → API Keys → Generate Test Key
-3. Add `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` to `.env`
-4. Test payments work automatically in test mode
-
-> Without Razorpay keys, the app runs in **demo mode** (COD works normally, online payment shows demo message).
-
----
-
-## 🗺️ Google Maps Setup
-
-1. Go to [console.cloud.google.com](https://console.cloud.google.com)
-2. Enable **Maps JavaScript API** and **Places API**
-3. Create API key and add to `.env` as `GOOGLE_MAPS_API_KEY`
-
-> Without Google Maps key, delivery check works via pincode matching.
-
----
-
-## 📊 Available Coupons (from seed)
-
-| Code | Type | Value | Min Order |
-|------|------|-------|-----------|
-| `ZIPP10` | 10% off | 10% | ₹199 |
-| `SAVE50` | Flat discount | ₹50 | ₹299 |
-| `FREEDEL` | Free delivery | — | ₹0 |
-| `NEWUSER` | New user | 20% | ₹399 |
-| `WEEKEND20` | Weekend deal | 20% | ₹499 |
-
----
-
-## 🔧 npm Scripts
+### Local Setup (Docker)
+The recommended local development workflow uses Docker Compose:
 
 ```bash
-npm run dev     # Start with nodemon (auto-restart)
-npm start       # Start production server
-npm run seed    # Seed database with sample data
+# Clone the repository
+git clone https://github.com/Sivaguru-2008/zipp-commerce.git
+cd zipp-commerce
+
+# Start backend, MongoDB, and Redis
+docker-compose up --build
 ```
 
----
-
-## 🐛 Troubleshooting
-
-**MongoDB not connecting?**
+### Manual Setup
 ```bash
-# Check if MongoDB is running
-mongod --version
-sudo systemctl status mongod
+cd backend
 
-# Start MongoDB
-sudo systemctl start mongod
+# Install dependencies
+npm install
+
+# Configure environment
+cp .env.example .env
+
+# Seed initial product catalog
+npm run seed
+
+# Start server with hot-reload
+npm run dev
 ```
 
-**Port already in use?**
-```bash
-# Change PORT in backend/.env
-PORT=3001
-```
-
-**Products not loading?**
-```bash
-# Run the seed script first
-cd backend && npm run seed
-```
-
-**Admin dashboard shows no data?**
-- Make sure you're logged in as `admin@example.com`
-- Run `npm run seed` to populate the database
+Application endpoints will be available at `http://localhost:5000`.
 
 ---
 
-## 🏗️ Tech Stack
+## 6. Current Limitations & Roadmap
 
-| Layer | Technology |
-|-------|-----------|
-| **Frontend** | HTML5, CSS3, Vanilla JavaScript |
-| **Backend** | Node.js, Express.js |
-| **Database** | MongoDB, Mongoose |
-| **Auth** | JWT, bcryptjs |
-| **Payments** | Razorpay |
-| **Uploads** | Multer |
-| **Security** | Helmet, express-rate-limit |
-
----
-
-## 📈 Scalability Ready
-
-The architecture supports adding:
-- Redis caching layer
-- Socket.io for live order tracking
-- Cloudinary for image hosting
-- Twilio for OTP/SMS
-- Firebase for push notifications
-- OpenAI for AI recommendations
-- Multi-vendor support
-- PWA/mobile app
-
----
-
-*Built with ❤️ as a production-grade quick commerce platform*
+- **Horizontal Sharding:** Current stock decrement transactions rely on single-replica-set ACID guarantees; cross-shard distributed transactions require distributed two-phase commit or saga orchestration for multi-region scale.
+- **Real-Time Rider Telemetry:** Delivery tracking currently uses polling; transition to WebSockets / SSE is planned for driver location streams.
