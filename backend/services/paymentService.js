@@ -107,7 +107,12 @@ exports.verify = async (userId, payload) => {
       .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
       .update(body)
       .digest('hex');
-    if (expected !== razorpay_signature) {
+
+    const expectedBuf = Buffer.from(expected, 'utf8');
+    const signatureBuf = Buffer.from(String(razorpay_signature || ''), 'utf8');
+    const isValid = expectedBuf.length === signatureBuf.length && crypto.timingSafeEqual(expectedBuf, signatureBuf);
+
+    if (!isValid) {
       metrics.recordPaymentFailure('signature_mismatch').catch(() => {});
       sentry.captureMessage('Payment signature mismatch', 'warning', {
         tags: { stage: 'verify' },

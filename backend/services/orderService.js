@@ -110,9 +110,14 @@ exports.placeOrder = async (userId, { deliveryAddress, paymentMethod = 'cod', de
     }, session);
 
     const stockErrors = [];
+    const decrementedItems = [];
     for (const item of cart.items) {
       const updated = await repo.decrementStockIfAvailable(item.product._id, item.quantity, session);
-      if (!updated) stockErrors.push(item.product.name || item.name);
+      if (!updated) {
+        stockErrors.push(item.product.name || item.name);
+      } else {
+        decrementedItems.push({ productId: item.product._id, quantity: item.quantity });
+      }
     }
 
     if (stockErrors.length > 0) {
@@ -121,7 +126,10 @@ exports.placeOrder = async (userId, { deliveryAddress, paymentMethod = 'cod', de
         // the order doc and any successful decrements.
         throw new ApiError(409, `Stock depleted for: ${stockErrors.join(', ')}. Please refresh your cart.`);
       }
-      // Standalone fallback: manually clean up the just-created order.
+      // Standalone fallback: restore previously decremented items and remove the order doc
+      for (const dec of decrementedItems) {
+        await repo.restoreStock(dec.productId, dec.quantity, null).catch(() => {});
+      }
       await repo.deleteById(orderDoc._id);
       throw new ApiError(409, `Stock depleted for: ${stockErrors.join(', ')}. Please refresh your cart.`);
     }
